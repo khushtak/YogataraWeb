@@ -1,0 +1,43 @@
+
+{
+  "summaryStats": {
+    "gpa": "3.8/4.0",
+    "averageGrade": "87.8%",
+    "coursesCompleted": "2/5",
+    "gradeDistribution": "A: 3, B: 2"
+  },
+  "courseGrades": [
+    { "course": "Introduction to React", "grade": 88, "status": "In Progress" },
+    { "course": "Advanced JavaScript Concepts", "grade": 75, "status": "In Progress" },
+    { "course": "Web Design Fundamentals", "grade": 92, "status": "In Progress" },
+    { "course": "HTML & CSS Basics", "grade": 95, "status": "Completed" },
+    { "course": "UX Research Methods", "grade": 89, "status": "Completed" }
+  ],
+  "courseDetails": {
+    "Introduction to React": {
+      "instructor": "John Doe, PhD",
+      "assignments": [
+        { "title": "Quiz 1", "type": "Quiz", "grade": "90", "maxGrade": "100", "status": "Completed" },
+        { "title": "Project 1", "type": "Project", "grade": "85", "maxGrade": "100", "status": "Completed" },
+        { "title": "Homework 1", "type": "Homework", "grade": "92", "maxGrade": "100", "status": "Completed" },
+        { "title": "Quiz 2", "type": "Quiz", "grade": "88", "maxGrade": "100", "status": "Completed" },
+        { "title": "Mid-term Exam", "type": "Exam", "grade": "78", "maxGrade": "100", "status": "Completed" },
+        { "title": "Project 2", "type": "Project", "grade": "94", "maxGrade": "100", "status": "In Progress" }
+      ]
+    }
+  },
+  "gradeDistributionData": [
+    { "name": "A", "value": 3, "color": "#4CAF50" },
+    { "name": "B", "value": 2, "color": "#8BC34A" },
+    { "name": "C", "value": 0, "color": "#FFC107" },
+    { "name": "D", "value": 0, "color": "#FF9800" },
+    { "name": "F", "value": 0, "color": "#F44336" }
+  ],
+  "performanceTrendData": [
+    { "name": "Introduction", "value": 88 },
+    { "name": "Advanced", "value": 75 },
+    { "name": "Web", "value": 92 },
+    { "name": "HTML", "value": 95 },
+    { "name": "UX", "value": 89 }
+  ]
+}

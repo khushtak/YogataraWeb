@@ -1,0 +1,37 @@
+
+{
+  "courses": [
+    {
+      "id": 1,
+      "title": "Advanced Vedic Astrology",
+      "sections": [
+        { "id": 1, "title": "Houses and Their Meanings" },
+        { "id": 2, "title": "Planetary Significators" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Planetary Influences",
+      "sections": [
+        { "id": 3, "title": "Planetary Rulerships" },
+        { "id": 4, "title": "Planetary Transits" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Numerology Basics",
+      "sections": [
+        { "id": 5, "title": "Numbers and Their Meanings" },
+        { "id": 6, "title": "Life Path Numbers" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Tarot Mastery",
+      "sections": [
+        { "id": 7, "title": "Major Arcana Cards" },
+        { "id": 8, "title": "Minor Arcana Cards" }
+      ]
+    }
+  ]
+}

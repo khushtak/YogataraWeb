@@ -1,0 +1,54 @@
+
+{
+  "upcomingAssignments": [
+    { 
+      "id": "1", 
+      "title": "React Project Submission", 
+      "course": "Introduction to React", 
+      "dueDate": "2024-04-10T23:59:00", 
+      "description": "Create a small React application that demonstrates your understanding of components, props, and state management.",
+      "type": "project",
+      "points": 100
+    },
+    { 
+      "id": "2", 
+      "title": "JavaScript Quiz", 
+      "course": "Advanced JavaScript Concepts", 
+      "dueDate": "2024-04-08T15:00:00", 
+      "description": "Complete the online quiz covering promises, async/await, and functional programming concepts.",
+      "type": "quiz",
+      "points": 50
+    },
+    { 
+      "id": "3", 
+      "title": "UI Design Critique", 
+      "course": "Web Design Fundamentals", 
+      "dueDate": "2024-04-15T23:59:00", 
+      "description": "Write a 500-word critique of the provided website design, focusing on usability and accessibility concerns.",
+      "type": "essay",
+      "points": 75
+    }
+  ],
+  "completedAssignments": [
+    { 
+      "id": "4", 
+      "title": "HTML Structure Exercise", 
+      "course": "HTML & CSS Basics", 
+      "submittedDate": "2024-03-15T14:30:00", 
+      "grade": "92/100",
+      "feedback": "Excellent work! Your HTML structure was very clean and semantic.",
+      "type": "exercise",
+      "points": 100
+    },
+    { 
+      "id": "5", 
+      "title": "CSS Layout Challenge", 
+      "course": "HTML & CSS Basics", 
+      "submittedDate": "2024-03-05T18:45:00", 
+      "grade": "85/100",
+      "feedback": "Good job on implementing flexbox correctly. Consider adding more responsive breakpoints.",
+      "type": "challenge",
+      "points": 75
+    }
+  ]
+}

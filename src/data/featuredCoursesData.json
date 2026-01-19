@@ -1,0 +1,61 @@
+
+{
+  "featuredCourses": [
+    {
+      "id": "1",
+      "title": "Vedic Astrology: Complete Chart Analysis & Predictions",
+      "instructor": "Mridul",
+      "thumbnail": "https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+      "rating": 4.9,
+      "students": 1486,
+      "duration": "18h 45m",
+      "price": 149.99,
+      "category": "Vedic Astrology",
+      "featured": true
+    },
+    {
+      "id": "2",
+      "title": "Numerology Masterclass: Discover Your Life Path & Destiny",
+      "instructor": "Mridul",
+      "thumbnail": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+      "rating": 4.8,
+      "students": 975,
+      "duration": "12h 30m",
+      "price": 99.99,
+      "category": "Numerology"
+    },
+    {
+      "id": "3",
+      "title": "Tarot Reading: From Beginner to Professional",
+      "instructor": "Mridul",
+      "thumbnail": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+      "rating": 4.7,
+      "students": 1240,
+      "duration": "15h 15m",
+      "price": 129.99,
+      "category": "Tarot"
+    },
+    {
+      "id": "4",
+      "title": "Palmistry: The Complete Hand Reading Guide",
+      "instructor": "Mridul",
+      "thumbnail": "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+      "rating": 4.6,
+      "students": 830,
+      "duration": "10h 45m",
+      "price": 89.99,
+      "category": "Palmistry"
+    },
+    {
+      "id": "5",
+      "title": "Vastu Shastra: Harmonizing Spaces with Ancient Wisdom",
+      "instructor": "Mridul",
+      "thumbnail": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+      "rating": 4.7,
+      "students": 650,
+      "duration": "14h 20m",
+      "price": 119.99,
+      "category": "Vastu Shastra"
+    }
+  ]
+}

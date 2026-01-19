@@ -1,0 +1,60 @@
+
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is the significance of the 9th house in Vedic astrology?",
+      "type": "Multiple Choice",
+      "difficulty": "Medium",
+      "category": "Vedic Astrology",
+      "course": "Advanced Vedic Astrology",
+      "section": "Houses and Their Meanings",
+      "usedIn": 43,
+      "hasImage": false
+    },
+    {
+      "id": 2,
+      "question": "Which planet rules the sign of Scorpio?",
+      "type": "Multiple Choice",
+      "difficulty": "Easy",
+      "category": "Vedic Astrology",
+      "course": "Planetary Influences",
+      "section": "Planetary Rulerships",
+      "usedIn": 38,
+      "hasImage": false
+    },
+    {
+      "id": 3,
+      "question": "What does the number 7 represent in numerology?",
+      "type": "Multiple Choice",
+      "difficulty": "Easy",
+      "category": "Numerology",
+      "course": "Numerology Basics",
+      "section": "Numbers and Their Meanings",
+      "usedIn": 52,
+      "hasImage": false
+    },
+    {
+      "id": 4,
+      "question": "What is the significance of the Moon Card in Tarot?",
+      "type": "Essay",
+      "difficulty": "Hard",
+      "category": "Tarot Reading",
+      "course": "Tarot Mastery",
+      "section": "Major Arcana Cards",
+      "usedIn": 27,
+      "hasImage": true
+    },
+    {
+      "id": 5,
+      "question": "Which planet is considered the karaka (significator) for marriage in Vedic astrology?",
+      "type": "Multiple Choice",
+      "difficulty": "Medium",
+      "category": "Vedic Astrology",
+      "course": "Advanced Vedic Astrology",
+      "section": "Planetary Significators",
+      "usedIn": 35,
+      "hasImage": false
+    }
+  ]
+}
