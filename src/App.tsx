@@ -31,6 +31,8 @@ import StudentProfile from "./pages/student/StudentProfile";
 import StudentCalendar from "./pages/student/StudentCalendar";
 import StudentCourseDetail from "./pages/student/StudentCourseDetail";
 import StudentAssignmentDetail from "./pages/student/StudentAssignmentDetail";
+import SubscribedStudents from "./pages/admin/ManageSubscribed";
+import AdminCoupons from "./pages/admin/AdminCoupon";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient({
@@ -174,6 +176,8 @@ const App = () => {
                   <Route path="/admin/courses/edit/:id" element={<EditCourse />} />
                   <Route path="/admin/questions" element={<ManageQuestions />} />
                   <Route path="/admin/students" element={<ManageStudents />} />
+                  <Route path="/admin/subscribed-students" element={<SubscribedStudents />} />
+                  <Route path="/admin/coupons" element={<AdminCoupons />} />
                   <Route path="/admin/notifications" element={<ManageNotifications />} />
                   <Route path="/admin/settings" element={<Settings />} />
                   
