@@ -37,10 +37,10 @@ const CalendarHeader = ({
           Next
           <ChevronRight className="h-4 w-4 ml-1" />
         </ButtonCustom>
-        <ButtonCustom size="sm" className="ml-2" onClick={onAddEvent}>
+        {/* <ButtonCustom size="sm" className="ml-2" onClick={onAddEvent}>
           <Plus className="h-4 w-4 mr-1" />
           Add Event
-        </ButtonCustom>
+        </ButtonCustom> */}
       </div>
     </div>
   );

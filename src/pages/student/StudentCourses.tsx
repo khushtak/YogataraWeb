@@ -1,281 +1,552 @@
+import React, { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
+import StudentLayout from "@/components/student/StudentLayout";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { ButtonCustom } from "@/components/ui/button-custom";
+import { Filter, Search, X, Download } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
-import React, { useEffect, useState } from 'react';
-import StudentLayout from '@/components/student/StudentLayout';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { ButtonCustom } from '@/components/ui/button-custom';
-import { Filter, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { getEnrolledCourses, getCompletedCourses } from '@/utils/dataUtils';
-import baseUrl from '@/config/Config';
+/* ================= TYPES ================= */
+
+interface StudentCourse {
+  id: string;
+  title: string;
+  progress: number;
+  instructor: string;
+  image?: string;
+  category: string;
+  description: string;
+  videoUrl?: string;
+  completedDate?: string;
+}
+
+interface Review {
+  rating: number;
+  feedback: string;
+}
+
+/* ================= COMPONENT ================= */
 
 const StudentCourses = () => {
+  const [inProgressCourses, setInProgressCourses] = useState<StudentCourse[]>([]);
+  const [completedCourses, setCompletedCourses] = useState<StudentCourse[]>([]);
+
+  const [showCertificate, setShowCertificate] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<StudentCourse | null>(null);
+  const certificateRef = useRef<HTMLDivElement>(null);
+
+  const [showReview, setShowReview] = useState(false);
+  const [reviewCourse, setReviewCourse] = useState<StudentCourse | null>(null);
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [reviews, setReviews] = useState<Record<string, Review>>({});
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+
+  /* ================= PRIVACY / SECURITY ================= */
+
   useEffect(() => {
-    window.scrollTo(0, 0);
-    getUserProgress("sayanmyself50@gmail.com");
+    // ❌ Right click disable
+    const disableRightClick = (e: MouseEvent) => e.preventDefault();
+
+    // ❌ Keyboard shortcuts disable
+    const disableKeys = (e: KeyboardEvent) => {
+      if (
+        e.ctrlKey &&
+        ["u", "s", "c", "p", "a", "i", "j"].includes(e.key.toLowerCase())
+      ) {
+        e.preventDefault();
+      }
+      if (e.key === "F12") e.preventDefault();
+    };
+
+    document.addEventListener("contextmenu", disableRightClick);
+    document.addEventListener("keydown", disableKeys);
+
+    return () => {
+      document.removeEventListener("contextmenu", disableRightClick);
+      document.removeEventListener("keydown", disableKeys);
+    };
   }, []);
 
-  // Get data from our data utils
-  // const inProgressCourses = getEnrolledCourses();
-  // const completedCourses = getCompletedCourses();
+  /* ================= STATIC DATA ================= */
 
-  const [inProgressCourses, setInProgressCourses] = useState([]);
-  const [completedCourses, setCompletedCourses] = useState([]);
+  useEffect(() => {
+    setInProgressCourses([
+      {
+        id: "1",
+        title: "Yoga for Beginners",
+        progress: 35,
+        instructor: "Mridul",
+        category: "Yoga",
+        description: "Basic yoga course",
+        videoUrl:
+          "https://iframe.mediadelivery.net/embed/583905/15300ab3-502e-4eab-8b04-ce03dc1409eb",
+      },
+      {
+        id: "2",
+        title: "Advanced Meditation",
+        progress: 70,
+        instructor: "Mridul",
+        category: "Meditation",
+        description: "Deep meditation practices",
+        videoUrl:
+          "https://iframe.mediadelivery.net/embed/583905/15300ab3-502e-4eab-8b04-ce03dc1409eb",
+      },
+    ]);
 
-  interface Lesson {
-    title: string;
-    duration: string;
-    completed: boolean;
-    type: string;
-  }
+    setCompletedCourses([
+      {
+        id: "3",
+        title: "Pranayama Mastery",
+        progress: 100,
+        instructor: "Mridul",
+        category: "Breathing",
+        description: "Complete pranayama course",
+        image: "/placeholder.svg",
+        completedDate: "2025-12-20",
+      },
+    ]);
+  }, []);
 
-  interface Module {
-    title: string;
-    lessons: Lesson[];
-  }
+  /* ================= CERTIFICATE ================= */
 
-  interface StudentCourse {
-    id: string;
-    title: string;
-    progress: number;
-    instructor: string;
-    nextLesson: string;
-    nextLessonTime: string;
-    image: string;
-    category: string;
-    description: string;
-    modules: Module[];
-  }
+const downloadPDF = async () => {
+  if (!certificateRef.current) return;
 
-  const transformUserProgress = (userProgress: any, courseDetails: any[]): StudentCourse[] => {
-    return userProgress.courseDetails.map((course: any, index: number) => {
-      const fullCourse = courseDetails.find(
-        (c) => c?._id === course.courseId || c?.courseId === course.courseId
-      );
+  const element = certificateRef.current;
+
+  const canvas = await html2canvas(element, {
+    scale: 3, // 🔥 high quality
+    useCORS: true,
+    backgroundColor: "#ffffff",
+  });
+
+  const imgData = canvas.toDataURL("image/png");
+
+  // A4 landscape size (px)
+  const pdf = new jsPDF("landscape", "px", "a4");
+
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
+
+  const imgWidth = canvas.width;
+  const imgHeight = canvas.height;
+
+  // 🔥 Scale image to fit PDF
+  const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+
+  const finalWidth = imgWidth * ratio;
+  const finalHeight = imgHeight * ratio;
+
+  // 🔥 CENTER POSITION
+  const x = (pdfWidth - finalWidth) / 2;
+  const y = (pdfHeight - finalHeight) / 2;
+
+  pdf.addImage(
+    imgData,
+    "PNG",
+    x,
+    y,
+    finalWidth,
+    finalHeight,
+    undefined,
+    "FAST"
+  );
+
+  pdf.save("certificate.pdf");
+};
 
 
-      // Extract instructor details
-      // console.log(fullCourse);
+  /* ================= REVIEW ================= */
 
-      // userProgress.courseDetails.forEach((course) => {
-      //   console.log(`Looking for Course ID: ${course.courseId}`);
-      //   console.log("Available Course IDs:", courseDetails.map((c) => c.id));
-
-      //   const fullCourse = courseDetails.find((c) => c?.id === course.courseId || c?.courseId === course.courseId);
-
-      //   console.log(`Found Course:`, fullCourse);
-      // });
-
-
-      const instructor = fullCourse?.courseInStructure?.[0] || {
-        name: "Unknown Instructor",
-        bio: "No bio available",
-        image: "https://via.placeholder.com/100",
-      };
-
-      return {
-        id: course.courseId || (index + 1).toString(),
-        title: fullCourse?.title || course.courseName || "Untitled Course",
-        progress: (course.videosWatched / (course.totalVideos || 1)) * 100,
-        instructor: instructor.name,
-        instructorBio: instructor.bio,
-        instructorImage: instructor.image,
-        nextLesson: fullCourse?.nextLesson || "Upcoming Lesson",
-        nextLessonTime: fullCourse?.nextLessonTime || "TBD",
-        image: fullCourse?.courseImage || "https://via.placeholder.com/300",
-        category: fullCourse?.category || "Unknown Category",
-        description: fullCourse?.description || "No description available.",
-        modules: fullCourse?.modules || [],
-      };
-    });
+  const submitReview = () => {
+    if (!reviewCourse) return;
+    setReviews((prev) => ({
+      ...prev,
+      [reviewCourse.id]: { rating, feedback },
+    }));
+    setShowReview(false);
   };
 
-
-
-  const getCourseById = async (id: string) => {
-    try {
-      const response = await fetch(`${baseUrl}/get-course/${id}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch course");
-      }
-
-      const course = await response.json();
-
-      // console.log(course);
-      return course;
-    } catch (error) {
-      console.error("Error fetching course:", error);
-      return null;
-    }
-  };
-
-  const getUserProgress = async (userEmail: string) => {
-    try {
-      const response = await fetch(`${baseUrl}/user-progress/${userEmail}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
-
-      // console.log("User progress fetched successfully:", data);
-
-      const courseIds = data.userProgress.courseDetails.map((course: any) => course.courseId);
-
-      // Fetch course details for each course ID
-      const courses = await Promise.all(courseIds.map((id: string) => getCourseById(id)));
-
-      // console.log("Fetched courses:", courses);
-
-      // Transform user progress with additional course details
-      const transformedData = transformUserProgress(data.userProgress, courses);
-
-      // console.log(transformedData);
-
-      // Filtering completed courses
-      const completedCourses = transformedData.filter(course => course.progress === 100);
-
-      // Filtering other courses
-      const ongoingCourses = transformedData.filter(course => course.progress !== 100);
-
-      setCompletedCourses(completedCourses);
-
-      setInProgressCourses(ongoingCourses);
-
-      return transformedData;
-    } catch (error) {
-      console.error("Error fetching user progress:", error);
-    }
-  };
+  /* ================= UI ================= */
 
   return (
     <StudentLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">My Courses</h1>
-            <p className="text-muted-foreground">Manage and track your learning journey</p>
+      <div className="space-y-8 p-4">
+
+        {/* HEADER */}
+       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+  {/* LEFT */}
+  <div>
+    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+      My Courses
+    </h1>
+    <p className="text-sm text-gray-500 dark:text-gray-400">
+      Manage and track your learning journey
+    </p>
+  </div>
+
+  {/* RIGHT */}
+  <div className="flex items-center gap-3">
+    {/* SEARCH */}
+    <div className="relative w-72">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+      <input
+        type="text"
+        placeholder="Search courses..."
+        className="
+          h-10
+          w-full
+          pl-10 pr-4
+          rounded-xl
+          border border-gray-300
+          bg-white
+          text-sm text-gray-900
+          placeholder-gray-400
+          focus:outline-none
+          focus:ring-2 focus:ring-indigo-500
+          dark:bg-gray-900
+          dark:border-gray-700
+          dark:text-gray-100
+          dark:placeholder-gray-500
+        "
+      />
+    </div>
+
+    {/* FILTER */}
+    <button
+      className="
+        h-10
+        px-4
+        flex items-center gap-2
+        rounded-xl
+        border border-gray-300
+        text-sm font-medium
+        text-gray-700
+        hover:bg-gray-100
+        dark:border-gray-700
+        dark:text-gray-200
+        dark:hover:bg-gray-800
+      "
+    >
+      <Filter className="h-4 w-4" />
+      Filter
+    </button>
+  </div>
+</div>
+
+
+        {/* TABS */}
+        <Tabs defaultValue="in-progress">
+          <TabsList>
+            <TabsTrigger value="in-progress">
+              In Progress ({inProgressCourses.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Completed ({completedCourses.length})
+            </TabsTrigger>
+          </TabsList>
+
+          {/* IN PROGRESS */}
+          <TabsContent value="in-progress" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+            {inProgressCourses.map((course) => (
+              <Card key={course.id} className="flex flex-col">
+                <div
+  className="relative"
+  style={{ paddingTop: "56.25%" }}
+  onContextMenu={(e) => e.preventDefault()} // right click block
+>
+  <iframe
+    src={`${course.videoUrl}?autoplay=false&controls=1&muted=false`}
+    title={course.title}
+    loading="lazy"
+    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+    allowFullScreen
+    sandbox="allow-scripts allow-same-origin allow-presentation"
+    style={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      border: "0",
+    }}
+  />
+</div>
+
+
+                <CardHeader>
+                  <CardTitle>{course.title}</CardTitle>
+                  <CardDescription>
+                    Instructor: {course.instructor}
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent>
+                  <div className="flex justify-between text-sm">
+                    <span>Progress</span>
+                    <span>{course.progress}%</span>
+                  </div>
+                  <Progress value={course.progress} />
+                </CardContent>
+
+                <CardFooter>
+                  <Link to={`/student/course/${course.id}`} className="w-full">
+                    <ButtonCustom className="w-full">
+                      Continue Learning
+                    </ButtonCustom>
+                  </Link>
+                </CardFooter>
+              </Card>
+            ))}
+          </TabsContent>
+
+          {/* COMPLETED */}
+          <TabsContent value="completed" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+            {completedCourses.map((course) => (
+              <Card key={course.id}>
+                <img
+                  src={course.image}
+                  alt={course.title}
+                  className="aspect-video object-cover"
+                />
+
+                <CardHeader>
+                  <CardTitle>{course.title}</CardTitle>
+                  <CardDescription>
+                    Instructor: {course.instructor}
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent>
+                  Completed on:{" "}
+                  {new Date(course.completedDate!).toLocaleDateString()}
+                </CardContent>
+
+                <CardFooter className="grid grid-cols-2 gap-2">
+                  <ButtonCustom
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedCourse(course);
+                      setShowCertificate(true);
+                    }}
+                  >
+                    Certificate
+                  </ButtonCustom>
+
+                  <ButtonCustom
+                    variant="secondary"
+                    onClick={() => {
+                      setReviewCourse(course);
+                      setShowReview(true);
+                    }}
+                  >
+                    Review
+                  </ButtonCustom>
+                </CardFooter>
+              </Card>
+            ))}
+          </TabsContent>
+        </Tabs>
+
+        {/* CERTIFICATE MODAL */}
+      {/* CERTIFICATE MODAL */}
+{showCertificate && selectedCourse && (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-2xl w-full max-w-4xl relative shadow-2xl">
+      <button
+        className="absolute top-4 right-4 text-gray-500 hover:text-black"
+        onClick={() => setShowCertificate(false)}
+      >
+        <X />
+      </button>
+
+      {/* CERTIFICATE */}
+      <div
+        ref={certificateRef}
+        className="relative p-10 border-[6px] border-indigo-600 rounded-xl bg-gradient-to-br from-indigo-50 via-white to-indigo-100"
+      >
+        {/* TOP */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="text-left">
+            <h3 className="text-sm text-gray-600">
+              Certificate No:
+              <span className="font-semibold ml-1">
+                YOG-{selectedCourse.id}-2026
+              </span>
+            </h3>
+            <h3 className="text-sm text-gray-600">
+              Issued On:{" "}
+              <span className="font-semibold">
+                {new Date().toLocaleDateString()}
+              </span>
+            </h3>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search courses..."
-                className="pl-9 pr-4 py-2 w-full bg-background border border-border rounded-md focus:border-primary focus:outline-none"
-              />
-            </div>
-
-            <ButtonCustom variant="outline" className="flex items-center">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </ButtonCustom>
+          {/* LOGO */}
+          <div className="text-right">
+            <h2 className="text-2xl font-bold text-indigo-700">
+              YOGATARA
+            </h2>
+            <p className="text-xs text-gray-500">
+              Authentic Yoga Learning Platform
+            </p>
           </div>
         </div>
 
-        <Tabs defaultValue="in-progress" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="in-progress">In Progress ({inProgressCourses.length})</TabsTrigger>
-            <TabsTrigger value="completed">Completed ({completedCourses.length})</TabsTrigger>
-          </TabsList>
+        {/* TITLE */}
+        <div className="text-center my-8">
+          <h1 className="text-4xl font-extrabold text-indigo-700">
+            Certificate of Completion
+          </h1>
+          <p className="mt-3 text-gray-600">
+            This certificate is proudly presented to
+          </p>
+        </div>
 
-          <TabsContent value="in-progress" className="space-y-6">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {inProgressCourses.map(course => (
-                <Card key={course.id} className="overflow-hidden flex flex-col">
-                  <div className="aspect-video relative">
-                    <img
-                      src={course.image || '/placeholder.svg'}
-                      alt={course.title}
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                      <span className="text-xs font-medium text-white bg-primary/80 px-2 py-1 rounded-full">
-                        {course.category || 'Course'}
-                      </span>
-                    </div>
-                  </div>
+        {/* STUDENT NAME */}
+        <div className="text-center my-6">
+          <h2 className="text-3xl font-bold text-gray-800 border-b-2 inline-block px-6 pb-2">
+            Khush singh
+          </h2>
+        </div>
 
-                  <CardHeader className="px-5 pb-2 pt-5">
-                    <CardTitle className="text-xl">{course.title}</CardTitle>
-                    <CardDescription>Instructor: {course.instructor}</CardDescription>
-                  </CardHeader>
+        {/* COURSE INFO */}
+        <div className="text-center mt-6 space-y-2">
+          <p className="text-lg text-gray-700">
+            for successfully completing the course
+          </p>
 
-                  <CardContent className="flex-1 px-5 pb-3">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Progress</span>
-                        <span className="font-medium">{course.progress}%</span>
-                      </div>
-                      <Progress value={course.progress} />
-                    </div>
-                  </CardContent>
+          <h3 className="text-2xl font-semibold text-indigo-600">
+            {selectedCourse.title}
+          </h3>
 
-                  <CardFooter className="px-5 pb-5 pt-0">
-                    <Link to={`/course/${course.id}`} className="w-full">
-                      <ButtonCustom className="w-full">Continue Learning</ButtonCustom>
-                    </Link>
-                  </CardFooter>
-                </Card>
-              ))}
+          <p className="text-sm text-gray-600">
+            Category: {selectedCourse.category}
+          </p>
+        </div>
+
+        {/* FOOTER */}
+        <div className="flex justify-between items-end mt-14">
+          {/* SIGNATURE */}
+          <div className="text-center">
+            <div className="border-t-2 w-40 mx-auto mb-1"></div>
+            <p className="font-semibold text-gray-800">
+              {selectedCourse.instructor}
+            </p>
+            <p className="text-xs text-gray-500">
+              Certified Yoga Instructor
+            </p>
+          </div>
+
+          {/* SEAL */}
+          <div className="text-center">
+            <div className="w-20 h-20 rounded-full border-4 border-indigo-600 flex items-center justify-center text-indigo-600 font-bold">
+              ✔
             </div>
-          </TabsContent>
+            <p className="text-xs mt-1 text-gray-500">
+              Verified Certificate
+            </p>
+          </div>
+        </div>
+      </div>
 
-          <TabsContent value="completed" className="space-y-6">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {completedCourses.map(course => (
-                <Card key={course.id} className="overflow-hidden flex flex-col">
-                  <div className="aspect-video relative">
-                    <img
-                      src={course.image || '/placeholder.svg'}
-                      alt={course.title}
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                      <span className="text-xs font-medium text-white bg-green-500/80 px-2 py-1 rounded-full">
-                        Completed
-                      </span>
-                    </div>
-                  </div>
+      {/* DOWNLOAD */}
+      <ButtonCustom
+        className="mt-6 w-full text-lg"
+        onClick={downloadPDF}
+      >
+        <Download className="mr-2" />
+        Download Certificate (PDF)
+      </ButtonCustom>
+    </div>
+  </div>
+)}
 
-                  <CardHeader className="px-5 pb-2 pt-5">
-                    <CardTitle className="text-xl">{course.title}</CardTitle>
-                    <CardDescription>Instructor: {course.instructor}</CardDescription>
-                  </CardHeader>
 
-                  <CardContent className="flex-1 px-5 pb-3">
-                    <p className="text-sm text-muted-foreground">
-                      Completed on: {new Date(course.completedDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </CardContent>
+        {/* REVIEW MODAL */}
+      {showReview && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div
+      className="
+        relative w-full max-w-md rounded-2xl p-6
+        bg-white text-gray-900
+        shadow-2xl
+        dark:bg-gray-900 dark:text-gray-100
+      "
+    >
+      {/* CLOSE */}
+      <button
+        onClick={() => setShowReview(false)}
+        className="
+          absolute top-4 right-4 rounded-full p-1
+          text-gray-500 hover:text-gray-900
+          dark:text-gray-400 dark:hover:text-white
+        "
+      >
+        <X className="h-5 w-5" />
+      </button>
 
-                  <CardFooter className="px-5 pb-5 pt-0">
-                    <div className="grid grid-cols-2 gap-2 w-full">
-                      <ButtonCustom variant="outline">View Certificate</ButtonCustom>
-                      <Link to={`/course/${course.id}`} className="w-full">
-                        <ButtonCustom variant="secondary" className="w-full">Review</ButtonCustom>
-                      </Link>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+      {/* TITLE */}
+      <h2 className="text-xl font-bold mb-1">
+        Leave Review
+      </h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        Rate this course and share your feedback
+      </p>
+
+      {/* STARS */}
+      <div className="flex gap-1 mb-4">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <button
+            key={s}
+            onClick={() => setRating(s)}
+            className={`text-3xl transition ${
+              s <= rating
+                ? "text-yellow-400"
+                : "text-gray-300 dark:text-gray-600"
+            }`}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+
+      {/* TEXTAREA */}
+      <textarea
+        value={feedback}
+        onChange={(e) => setFeedback(e.target.value)}
+        placeholder="Write your feedback..."
+        className="
+          w-full min-h-[100px] rounded-xl border px-4 py-2 text-sm
+          bg-white text-gray-900 placeholder-gray-400
+          focus:outline-none focus:ring-2 focus:ring-indigo-500
+          dark:bg-gray-800 dark:border-gray-700
+          dark:text-gray-100 dark:placeholder-gray-500
+        "
+      />
+
+      {/* BUTTON */}
+      <ButtonCustom
+        className="mt-5 w-full text-base"
+        onClick={submitReview}
+      >
+        Submit Review
+      </ButtonCustom>
+    </div>
+  </div>
+)}
+
       </div>
     </StudentLayout>
   );

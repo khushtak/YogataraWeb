@@ -1,9 +1,21 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { ChartContainer } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ChartContainer } from "@/components/ui/chart";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 interface CourseGradeDetailsProps {
   courseTitle: string;
@@ -22,13 +34,11 @@ const CourseGradeDetails = ({
   courseTitle,
   instructor,
   overallGrade,
-  assignments
+  assignments,
 }: CourseGradeDetailsProps) => {
-  // Transform assignments for chart visualization
-  const chartData = assignments.map(assignment => ({
+  const chartData = assignments.map((assignment) => ({
     name: assignment.title,
-    grade: parseFloat(assignment.grade),
-    maxGrade: parseFloat(assignment.maxGrade)
+    grade: Number(assignment.grade),
   }));
 
   return (
@@ -37,51 +47,83 @@ const CourseGradeDetails = ({
         <CardTitle>{courseTitle}</CardTitle>
         <div className="text-sm text-muted-foreground">{instructor}</div>
       </CardHeader>
+
       <CardContent className="space-y-6">
+        {/* OVERALL GRADE */}
         <div>
           <h3 className="text-lg font-medium mb-2">Overall Grade</h3>
           <div className="text-2xl font-bold">{overallGrade}</div>
         </div>
-        
+
         <Separator />
-        
+
+        {/* GRADE BREAKDOWN */}
         <div>
           <h3 className="text-lg font-medium mb-4">Grade Breakdown</h3>
-          <div className="h-64 w-full">
+
+          {/* 🔥 FIXED HEIGHT + OVERFLOW */}
+          <div className="h-[320px] w-full overflow-hidden">
             <ChartContainer config={{}}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="grade" fill="#8884d8" name="Your Grade" />
-              </BarChart>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 20, right: 20, left: 0, bottom: 60 }} // 🔥 IMPORTANT
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-30}
+                    textAnchor="end"
+                    interval={0}
+                    height={60}
+                  />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar
+                    dataKey="grade"
+                    radius={[6, 6, 0, 0]}
+                    fill="#8b5cf6"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </ChartContainer>
           </div>
         </div>
-        
+
         <Separator />
-        
+
+        {/* ASSIGNMENTS LIST */}
         <div>
           <h3 className="text-lg font-medium mb-4">Assignments</h3>
+
           <div className="space-y-3">
             {assignments.map((assignment, index) => (
-              <div key={index} className="grid grid-cols-12 gap-4 py-2">
+              <div
+                key={index}
+                className="grid grid-cols-12 gap-4 py-2 items-center"
+              >
                 <div className="col-span-6 md:col-span-5">
                   <div className="font-medium">{assignment.title}</div>
-                  <div className="text-sm text-muted-foreground">{assignment.type}</div>
-                </div>
-                <div className="col-span-3 md:col-span-4 flex items-center">
-                  <div className="text-sm md:text-base">
-                    {assignment.grade} / {assignment.maxGrade}
+                  <div className="text-sm text-muted-foreground">
+                    {assignment.type}
                   </div>
                 </div>
-                <div className="col-span-3 flex items-center justify-end">
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium
-                    ${assignment.status === 'Completed' ? 'bg-green-100 text-green-800' : 
-                      assignment.status === 'Missing' ? 'bg-red-100 text-red-800' : 
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
+
+                <div className="col-span-3 md:col-span-4">
+                  {assignment.grade} / {assignment.maxGrade}
+                </div>
+
+                <div className="col-span-3 flex justify-end">
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium
+                      ${
+                        assignment.status === "Completed"
+                          ? "bg-green-100 text-green-800"
+                          : assignment.status === "Missing"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                  >
                     {assignment.status}
                   </span>
                 </div>

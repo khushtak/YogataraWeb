@@ -10,6 +10,8 @@ import {
   Bell,
   Sun,
   Moon,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ButtonCustom } from "@/components/ui/button-custom";
@@ -40,6 +42,9 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children }) => {
     localStorage.getItem("theme") || "light"
   );
 
+  /* ================= MOBILE DRAWER ================= */
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   useEffect(() => {
     const root = document.documentElement;
     theme === "dark"
@@ -63,13 +68,11 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* ================= SIDEBAR ================= */}
+      {/* ================= DESKTOP SIDEBAR ================= */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 flex-col bg-card border-r border-border z-30">
         <div className="p-4 flex items-center">
-          <Link to="/" className="flex items-center">
-            <GiShipWheel className="h-6 w-6 text-primary mr-2" />
-            <span className="text-lg font-semibold">Yogtara</span>
-          </Link>
+          <GiShipWheel className="h-6 w-6 text-primary mr-2" />
+          <span className="text-lg font-semibold">Yogtara</span>
         </div>
 
         <Separator />
@@ -80,10 +83,10 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children }) => {
               key={link.path}
               to={link.path}
               className={cn(
-                "flex items-center px-4 py-3 rounded-lg transition",
+                "flex items-center px-4 py-3 rounded-lg",
                 location.pathname === link.path
                   ? "bg-primary/10 text-primary"
-                  : "text-foreground/80 hover:bg-accent"
+                  : "hover:bg-accent"
               )}
             >
               <link.icon className="h-5 w-5 mr-3" />
@@ -104,79 +107,78 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children }) => {
         </div>
       </aside>
 
+      {/* ================= MOBILE DRAWER ================= */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setIsDrawerOpen(false)}
+          />
+
+          <aside className="absolute left-0 top-0 h-full w-64 bg-card border-r border-border p-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-semibold text-lg">Yogtara</span>
+              <X onClick={() => setIsDrawerOpen(false)} className="cursor-pointer" />
+            </div>
+
+            <Separator />
+
+            <nav className="mt-4 space-y-2">
+              {sidebarLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setIsDrawerOpen(false)}
+                  className={cn(
+                    "flex items-center px-4 py-3 rounded-lg",
+                    location.pathname === link.path
+                      ? "bg-primary/10 text-primary"
+                      : "hover:bg-accent"
+                  )}
+                >
+                  <link.icon className="h-5 w-5 mr-3" />
+                  {link.name}
+                </Link>
+              ))}
+            </nav>
+          </aside>
+        </div>
+      )}
+
+      {/* ================= TOP BAR ================= */}
+      <div className="fixed top-4 left-4 right-4 z-[100] flex justify-between lg:hidden">
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          className="p-2 bg-background border rounded-full"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      </div>
+
       {/* ================= TOP RIGHT ================= */}
       <div className="fixed top-4 right-4 z-[100] flex items-center gap-3">
-        {/* 🔔 Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="relative p-2 bg-background border border-border rounded-full shadow-sm">
+            <button className="relative p-2 bg-background border rounded-full">
               <Bell className="h-5 w-5" />
-              {unreadNotifications > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-white text-xs h-4 w-4 flex items-center justify-center rounded-full">
-                  {unreadNotifications}
-                </span>
-              )}
             </button>
           </DropdownMenuTrigger>
-
-          {/* ✅ BLUR FIXED DROPDOWN */}
-          <DropdownMenuContent
-            align="end"
-            side="bottom"
-            sideOffset={12}
-            collisionPadding={20}
-            className="
-              z-[9999]
-              w-80
-              max-h-[70vh]
-              overflow-y-auto
-              rounded-xl
-              border border-border
-              shadow-2xl
-
-              bg-white/70
-              dark:bg-black/60
-
-              backdrop-blur-xl
-              backdrop-saturate-150
-            "
-          >
+          <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
-
-            {announcements.length > 0 ? (
-              announcements.map((n) => (
-                <DropdownMenuItem
-                  key={n.id}
-                  className="flex flex-col items-start gap-1 py-3"
-                >
-                  <span className="font-medium">{n.title}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {n.content}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {n.date}
-                  </span>
-                </DropdownMenuItem>
-              ))
-            ) : (
-              <DropdownMenuItem disabled>
-                No notifications
+            {announcements.map((n) => (
+              <DropdownMenuItem key={n.id}>
+                {n.title}
               </DropdownMenuItem>
-            )}
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* 🌙 Theme */}
         <button
           onClick={toggleTheme}
-          className="p-2 bg-background border border-border rounded-full hover:bg-accent transition"
+          className="p-2 bg-background border rounded-full"
         >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
+          {theme === "dark" ? <Sun /> : <Moon />}
         </button>
       </div>
 

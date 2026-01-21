@@ -152,21 +152,21 @@ interface Question {
 
 const MCQForm = ({ courseId }: { courseId: string }) => {
   const [questions, setQuestions] = useState<Question[]>([
-    // {
-    //   question: 'What is the capital of France?',
-    //   options: ['Paris', 'London', 'Berlin', 'Madrid'],
-    //   correctAnswer: 'Paris',
-    // },
-    // {
-    //   question: 'Which planet is known as the Red Planet?',
-    //   options: ['Earth', 'Mars', 'Jupiter', 'Saturn'],
-    //   correctAnswer: 'Mars',
-    // },
-    // {
-    //   question: 'What is 2 + 2?',
-    //   options: ['3', '4', '5', '6'],
-    //   correctAnswer: '4',
-    // },
+    {
+      question: 'What is the capital of France?',
+      options: ['Paris', 'London', 'Berlin', 'Madrid'],
+      correctAnswer: 'Paris',
+    },
+    {
+      question: 'Which planet is known as the Red Planet?',
+      options: ['Earth', 'Mars', 'Jupiter', 'Saturn'],
+      correctAnswer: 'Mars',
+    },
+    {
+      question: 'What is 2 + 2?',
+      options: ['3', '4', '5', '6'],
+      correctAnswer: '4',
+    },
   ]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);

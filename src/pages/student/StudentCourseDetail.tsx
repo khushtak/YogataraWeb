@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,6 +36,42 @@ const StudentCourseDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentLesson, setCurrentLesson] = useState<CurrentLessonType | null>(null);
 
+  /* =====================================================
+     🔒 ADDED ONLY: PAGE PRIVACY (RIGHT CLICK + KEYS BLOCK)
+     ===================================================== */
+  useEffect(() => {
+    const disableRightClick = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    const disableKeys = (e: KeyboardEvent) => {
+      if (
+        e.key === 'F12' ||
+        e.key === 'prt sc' ||
+        e.ctrlKey ||
+        e.metaKey
+      ) {
+        e.preventDefault();
+      }
+
+      if (
+        (e.ctrlKey && ['c', 'v', 'x', 'u', 's', 'p'].includes(e.key.toLowerCase())) ||
+        (e.ctrlKey && e.shiftKey && ['i', 'j'].includes(e.key.toLowerCase()))
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('contextmenu', disableRightClick);
+    document.addEventListener('keydown', disableKeys);
+
+    return () => {
+      document.removeEventListener('contextmenu', disableRightClick);
+      document.removeEventListener('keydown', disableKeys);
+    };
+  }, []);
+  /* ================= END ADDED CODE =================== */
+
   useEffect(() => {
     window.scrollTo(0, 0);
     
@@ -56,7 +91,7 @@ const StudentCourseDetail = () => {
                 setCurrentLesson({
                   ...lesson,
                   moduleTitle: module.title,
-                  completed: lesson.completed || false // Ensure completed is set
+                  completed: lesson.completed || false
                 });
                 foundCurrentLesson = true;
                 break;
@@ -84,7 +119,6 @@ const StudentCourseDetail = () => {
       description: `You're now viewing ${lesson.title}`,
     });
     
-    // Scroll to the video player
     document.getElementById('video-player')?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -108,7 +142,9 @@ const StudentCourseDetail = () => {
         <div className="flex flex-col items-center justify-center p-8">
           <AlertCircle className="h-16 w-16 text-destructive mb-4" />
           <h1 className="text-2xl font-bold mb-2">Course Not Found</h1>
-          <p className="text-muted-foreground mb-6">The course you're looking for doesn't exist or has been removed.</p>
+          <p className="text-muted-foreground mb-6">
+            The course you're looking for doesn't exist or has been removed.
+          </p>
           <Link to="/student/courses">
             <ButtonCustom>Back to My Courses</ButtonCustom>
           </Link>
@@ -120,17 +156,14 @@ const StudentCourseDetail = () => {
   return (
     <StudentLayout>
       <div className="space-y-8">
-        {/* Course Header */}
         <CourseDetailHeader course={course} />
 
-        {/* Video Player */}
         {currentLesson && (
-          <Card>
+          <Card id="video-player">
             <StudentVideoPlayer currentLesson={currentLesson} />
           </Card>
         )}
 
-        {/* Course Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Tabs defaultValue="content" className="space-y-6">

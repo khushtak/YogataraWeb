@@ -15,34 +15,33 @@ import {
   Clock,
   Award,
   Calendar,
-  Bell,
-  Sun,
-  Moon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import baseUrl from "@/config/Config";
 
+/* ================= STATIC COURSES ================= */
+const STATIC_COURSES = [
+  {
+    id: "vedic-101",
+    title: "Vedic Astrology Foundations",
+    instructor: "Acharya Yogesh",
+    progress: 35,
+  },
+  {
+    id: "kundli-202",
+    title: "Kundli Reading & Analysis",
+    instructor: "Guru Ramesh",
+    progress: 62,
+  },
+  {
+    id: "navagraha-303",
+    title: "Navagraha Deep Study",
+    instructor: "Pandit Shankar",
+    progress: 18,
+  },
+];
+
 const StudentDashboard = () => {
-  /* ================= THEME ================= */
-  const [theme, setTheme] = useState(
-    localStorage.getItem("theme") || "dark"
-  );
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-  /* ======================================== */
-
   const [enrolledCourses, setEnrolledCourses] = useState([]);
 
   useEffect(() => {
@@ -71,41 +70,40 @@ const StudentDashboard = () => {
         )
       );
 
-      setEnrolledCourses(
-        data.userProgress.courseDetails.map((course, i) => ({
-          id: course.courseId,
-          title: courses[i]?.title || "Untitled Course",
-          progress:
-            (course.videosWatched / (course.totalVideos || 1)) * 100,
-          instructor:
-            courses[i]?.courseInStructure?.[0]?.name || "Instructor",
-        }))
-      );
+      const formatted = data.userProgress.courseDetails.map((course, i) => ({
+        id: course.courseId,
+        title: courses[i]?.title || "Untitled Course",
+        progress:
+          (course.videosWatched / (course.totalVideos || 1)) * 100,
+        instructor:
+          courses[i]?.courseInStructure?.[0]?.name || "Instructor",
+      }));
+
+      setEnrolledCourses(formatted);
     } catch (err) {
       console.error(err);
+      setEnrolledCourses([]); // fallback trigger
     }
   };
+
+  const coursesToShow =
+    enrolledCourses.length > 0 ? enrolledCourses : STATIC_COURSES;
 
   return (
     <StudentLayout>
       <div className="space-y-8">
 
-        {/* ================= HEADER ================= */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-1">
-              Welcome back, Student
-            </h1>
-            <p className="text-muted-foreground">
-              Here's what's happening with your courses today.
-            </p>
-          </div>
-
-      
+        {/* HEADER */}
+        <div>
+          <h1 className="text-3xl font-bold mb-1">
+            Welcome back, Student
+          </h1>
+          <p className="text-muted-foreground">
+            Track your astrology learning progress.
+          </p>
         </div>
-        {/* ========================================== */}
 
-        {/* ================= STATS ================= */}
+        {/* STATS */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardContent className="p-6 flex justify-between">
@@ -114,7 +112,7 @@ const StudentDashboard = () => {
                   Enrolled Courses
                 </p>
                 <p className="text-2xl font-bold">
-                  {enrolledCourses.length}
+                  {coursesToShow.length}
                 </p>
               </div>
               <div className="bg-primary/10 p-3 rounded-full">
@@ -127,7 +125,7 @@ const StudentDashboard = () => {
             <CardContent className="p-6 flex justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Total Learning Hours
+                  Learning Hours
                 </p>
                 <p className="text-2xl font-bold">24.5</p>
               </div>
@@ -141,7 +139,7 @@ const StudentDashboard = () => {
             <CardContent className="p-6 flex justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Certificates Earned
+                  Certificates
                 </p>
                 <p className="text-2xl font-bold">2</p>
               </div>
@@ -166,17 +164,17 @@ const StudentDashboard = () => {
           </Card>
         </div>
 
-        {/* ================= COURSES ================= */}
+        {/* CURRENT COURSES */}
         <Card>
           <CardHeader>
             <CardTitle>Current Courses</CardTitle>
             <CardDescription>
-              Continue where you left off.
+              Continue your astrology journey
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {enrolledCourses.map((course) => (
+            {coursesToShow.map((course) => (
               <div key={course.id}>
                 <div className="flex justify-between items-start">
                   <div>
@@ -188,14 +186,17 @@ const StudentDashboard = () => {
                     </p>
                   </div>
 
-                  <Link to={`/course/${course.id}`}>
+                  <Link to={`/student/course/${course.id}`}>
                     <ButtonCustom size="sm" variant="outline">
                       Continue
                     </ButtonCustom>
                   </Link>
                 </div>
 
-                <Progress value={course.progress} className="mt-3" />
+                <Progress
+                  value={course.progress}
+                  className="mt-3"
+                />
                 <Separator className="mt-4" />
               </div>
             ))}

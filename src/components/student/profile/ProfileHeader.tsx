@@ -11,10 +11,12 @@ interface ProfileHeaderProps {
 
 const ProfileHeader = ({ isEditing, setIsEditing, onSaveProfile }: ProfileHeaderProps) => {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex justify-between items-center mt-6">
       <div>
         <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-        <p className="text-muted-foreground">Manage your account information and preferences</p>
+        <p className="text-muted-foreground">
+          Manage your account information and preferences
+        </p>
       </div>
       
       {!isEditing ? (
@@ -45,5 +47,6 @@ const ProfileHeader = ({ isEditing, setIsEditing, onSaveProfile }: ProfileHeader
     </div>
   );
 };
+
 
 export default ProfileHeader;
