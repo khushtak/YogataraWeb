@@ -18,76 +18,89 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import baseUrl from "@/config/Config";
+import { getUser } from "@/utils/auth";
 
-/* ================= STATIC COURSES ================= */
-const STATIC_COURSES = [
-  {
-    id: "vedic-101",
-    title: "Vedic Astrology Foundations",
-    instructor: "Acharya Yogesh",
-    progress: 35,
-  },
-  {
-    id: "kundli-202",
-    title: "Kundli Reading & Analysis",
-    instructor: "Guru Ramesh",
-    progress: 62,
-  },
-  {
-    id: "navagraha-303",
-    title: "Navagraha Deep Study",
-    instructor: "Pandit Shankar",
-    progress: 18,
-  },
-];
+/* ================= STAT CARD ================= */
+const StatCard = ({
+  title,
+  value,
+  icon: Icon,
+  bg,
+  color,
+}: any) => (
+  <Card>
+    <CardContent className="p-6 flex justify-between items-center">
+      <div>
+        <p className="text-sm text-muted-foreground">{title}</p>
+        <p className="text-2xl font-bold">{value}</p>
+      </div>
 
+      <div className={`p-3 rounded-full ${bg}`}>
+        <Icon className={`h-6 w-6 ${color}`} />
+      </div>
+    </CardContent>
+  </Card>
+);
+
+/* ================= MAIN ================= */
 const StudentDashboard = () => {
-  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
+  const [studentName, setStudentName] = useState("Student");
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    getUserProgress("sayanmyself50@gmail.com");
+
+    const user = getUser();
+    if (user?.full_name && user?.email) {
+      setStudentName(user.full_name);
+      getUserProgress(user.email);
+    }
   }, []);
 
-  const getCourseById = async (id) => {
+  /* ================= API ================= */
+  const getCourseById = async (id: string) => {
     try {
       const res = await fetch(`${baseUrl}/get-course/${id}`);
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) return null;
       return await res.json();
     } catch {
       return null;
     }
   };
 
-  const getUserProgress = async (email) => {
+  const getUserProgress = async (email: string) => {
     try {
       const res = await fetch(`${baseUrl}/user-progress/${email}`);
       const data = await res.json();
 
+      if (!data?.userProgress?.courseDetails?.length) {
+        setEnrolledCourses([]);
+        return;
+      }
+
       const courses = await Promise.all(
-        data.userProgress.courseDetails.map((c) =>
+        data.userProgress.courseDetails.map((c: any) =>
           getCourseById(c.courseId)
         )
       );
 
-      const formatted = data.userProgress.courseDetails.map((course, i) => ({
-        id: course.courseId,
-        title: courses[i]?.title || "Untitled Course",
-        progress:
-          (course.videosWatched / (course.totalVideos || 1)) * 100,
-        instructor:
-          courses[i]?.courseInStructure?.[0]?.name || "Instructor",
-      }));
+      const formatted = data.userProgress.courseDetails.map(
+        (course: any, i: number) => ({
+          id: course.courseId,
+          title: courses[i]?.title || "Untitled Course",
+          progress:
+            (course.videosWatched / (course.totalVideos || 1)) * 100,
+          instructor:
+            courses[i]?.courseInStructure?.[0]?.name || "Instructor",
+        })
+      );
 
       setEnrolledCourses(formatted);
     } catch (err) {
       console.error(err);
-      setEnrolledCourses([]); // fallback trigger
+      setEnrolledCourses([]);
     }
   };
-
-  const coursesToShow =
-    enrolledCourses.length > 0 ? enrolledCourses : STATIC_COURSES;
 
   return (
     <StudentLayout>
@@ -96,7 +109,8 @@ const StudentDashboard = () => {
         {/* HEADER */}
         <div>
           <h1 className="text-3xl font-bold mb-1">
-            Welcome back, Student
+            Welcome back,{" "}
+            <span className="text-primary">{studentName}</span> 👋
           </h1>
           <p className="text-muted-foreground">
             Track your astrology learning progress.
@@ -105,101 +119,89 @@ const StudentDashboard = () => {
 
         {/* STATS */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-6 flex justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Enrolled Courses
-                </p>
-                <p className="text-2xl font-bold">
-                  {coursesToShow.length}
-                </p>
-              </div>
-              <div className="bg-primary/10 p-3 rounded-full">
-                <BookOpen className="text-primary" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Enrolled Courses"
+            value={enrolledCourses.length}
+            icon={BookOpen}
+            bg="bg-purple-100"
+            color="text-purple-600"
+          />
 
-          <Card>
-            <CardContent className="p-6 flex justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Learning Hours
-                </p>
-                <p className="text-2xl font-bold">24.5</p>
-              </div>
-              <div className="bg-amber-500/10 p-3 rounded-full">
-                <Clock className="text-amber-500" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Learning Hours"
+            value="0"
+            icon={Clock}
+            bg="bg-orange-100"
+            color="text-orange-500"
+          />
 
-          <Card>
-            <CardContent className="p-6 flex justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Certificates
-                </p>
-                <p className="text-2xl font-bold">2</p>
-              </div>
-              <div className="bg-green-500/10 p-3 rounded-full">
-                <Award className="text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Certificates"
+            value="0"
+            icon={Award}
+            bg="bg-green-100"
+            color="text-green-600"
+          />
 
-          <Card>
-            <CardContent className="p-6 flex justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Upcoming Events
-                </p>
-                <p className="text-2xl font-bold">5</p>
-              </div>
-              <div className="bg-blue-500/10 p-3 rounded-full">
-                <Calendar className="text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Upcoming Events"
+            value="0"
+            icon={Calendar}
+            bg="bg-blue-100"
+            color="text-blue-600"
+          />
         </div>
 
-        {/* CURRENT COURSES */}
+        {/* COURSES */}
         <Card>
           <CardHeader>
-            <CardTitle>Current Courses</CardTitle>
+            <CardTitle>My Courses</CardTitle>
             <CardDescription>
-              Continue your astrology journey
+              Your enrolled courses will appear here
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
-            {coursesToShow.map((course) => (
-              <div key={course.id}>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium text-lg">
-                      {course.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Instructor: {course.instructor}
-                    </p>
-                  </div>
+          <CardContent>
+            {enrolledCourses.length === 0 ? (
+              <div className="text-center py-12">
+                <BookOpen className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">
+                  You haven’t enrolled in any course yet.
+                </p>
 
-                  <Link to={`/student/course/${course.id}`}>
-                    <ButtonCustom size="sm" variant="outline">
-                      Continue
-                    </ButtonCustom>
-                  </Link>
-                </div>
-
-                <Progress
-                  value={course.progress}
-                  className="mt-3"
-                />
-                <Separator className="mt-4" />
+                <Link to="/courses">
+                  <ButtonCustom className="mt-4">
+                    Explore Courses
+                  </ButtonCustom>
+                </Link>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-6">
+                {enrolledCourses.map((course) => (
+                  <div key={course.id}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium text-lg">
+                          {course.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Instructor: {course.instructor}
+                        </p>
+                      </div>
+
+                      <Link to={`/student/course/${course.id}`}>
+                        <ButtonCustom size="sm" variant="outline">
+                          Continue
+                        </ButtonCustom>
+                      </Link>
+                    </div>
+
+                    <Progress value={course.progress} className="mt-3" />
+                    <Separator className="mt-4" />
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

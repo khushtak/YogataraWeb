@@ -224,3 +224,15 @@ html {
     display: none;
   }
 }
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-toast-progress {
+  animation: toast-progress 1.2s linear forwards;
+}

@@ -5,49 +5,50 @@ import GradeSummaryCard from '@/components/student/grades/GradeSummaryCard';
 import CourseGradesList from '@/components/student/grades/CourseGradesList';
 import CourseGradeDetails from '@/components/student/grades/CourseGradeDetails';
 import GradeStatistics, { GradeData } from '@/components/student/grades/GradeStatistics';
-import {
-  getGradeStatistics,
-  getGradeDistributionForChart,
-  getRecentGradesForChart
-} from '@/utils/data/gradesUtils';
-import baseUrl from '@/config/Config';
 
 const StudentGrades = () => {
+  // COURSE LIST - empty for fresh student
   const [courseGrades, setCourseGrades] = useState([]);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    getUserProgress('sayanmyself50@gmail.com');
-  }, []);
-
-  const stats = getGradeStatistics('student-1');
-  const selectedCourse = 'Introduction to React';
-
-  const courseDetails = {
-    instructor: 'John Doe, PhD',
-    assignments: [
-      { title: 'Quiz 1', type: 'Quiz', grade: '90', maxGrade: '100', status: 'Completed' },
-      { title: 'Project 1', type: 'Project', grade: '85', maxGrade: '100', status: 'Completed' },
-      { title: 'Homework 1', type: 'Homework', grade: '92', maxGrade: '100', status: 'Completed' },
-      { title: 'Quiz 2', type: 'Quiz', grade: '88', maxGrade: '100', status: 'Completed' },
-      { title: 'Mid-term Exam', type: 'Exam', grade: '78', maxGrade: '100', status: 'Completed' },
-      { title: 'Project 2', type: 'Project', grade: '94', maxGrade: '100', status: 'In Progress' }
+  // SUMMARY CARDS DATA
+  const stats = {
+    gpa: 0,
+    averageGrade: 0,
+    coursesCompleted: 0,
+    gradeDistribution: [
+      { grade: 'A', count: 0 },
+      { grade: 'B', count: 0 }
     ]
   };
 
-  const gradeDistributionData: GradeData[] = getGradeDistributionForChart();
-  const performanceTrendData: GradeData[] = getRecentGradesForChart();
-  const weightedGrade = '88.5';
-
-  const getUserProgress = async (email) => {
-    try {
-      const res = await fetch(`${baseUrl}/user-progress/${email}`);
-      const data = await res.json();
-      console.log(data);
-    } catch (err) {
-      console.error(err);
-    }
+  // SELECTED COURSE DETAILS
+  const selectedCourse = 'Introduction to React';
+  const courseDetails = {
+    instructor: 'John Doe, PhD',
+    overallGrade: '0% (N/A)',
+    assignments: [
+      { title: 'Quiz 1', type: 'Quiz', grade: '0', maxGrade: '100', status: 'Not Attempted' },
+      { title: 'Project 1', type: 'Project', grade: '0', maxGrade: '100', status: 'Not Attempted' },
+      { title: 'Homework 1', type: 'Homework', grade: '0', maxGrade: '100', status: 'Not Attempted' },
+      { title: 'Quiz 2', type: 'Quiz', grade: '0', maxGrade: '100', status: 'Not Attempted' },
+      { title: 'Mid-term Exam', type: 'Exam', grade: '0', maxGrade: '100', status: 'Not Attempted' },
+      { title: 'Project 2', type: 'Project', grade: '0', maxGrade: '100', status: 'Not Attempted' }
+    ]
   };
+
+  // CHART DATA
+  const gradeDistributionData: GradeData[] = [
+    { label: 'A', value: 0 },
+    { label: 'B', value: 0 },
+    { label: 'C', value: 0 },
+    { label: 'D', value: 0 },
+    { label: 'F', value: 0 }
+  ];
+  const performanceTrendData: GradeData[] = []; // empty for fresh student
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <StudentLayout>
@@ -105,7 +106,7 @@ const StudentGrades = () => {
             <CourseGradeDetails
               courseTitle={selectedCourse}
               instructor={courseDetails.instructor}
-              overallGrade={`${weightedGrade}% (A)`}
+              overallGrade={courseDetails.overallGrade}
               assignments={courseDetails.assignments}
             />
 

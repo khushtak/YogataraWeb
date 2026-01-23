@@ -1,77 +1,77 @@
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import StudentLayout from '@/components/student/StudentLayout';
-import ProfileHeader from '@/components/student/profile/ProfileHeader';
-import ProfileTabs from '@/components/student/profile/ProfileTabs';
+import React, { useEffect, useState } from "react";
+import StudentLayout from "@/components/student/StudentLayout";
+import ProfileHeader from "@/components/student/profile/ProfileHeader";
+import ProfileTabs from "@/components/student/profile/ProfileTabs";
+import { getUser, saveUser } from "@/utils/auth";
 
 const StudentProfile = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    // 🔥 LOAD USER FROM SESSION STORAGE
+    const storedUser = getUser();
+    console.log("Loaded user from session:", storedUser);
+    if (storedUser) {
+      setUserData(storedUser);
+    }
   }, []);
 
   const [isEditing, setIsEditing] = useState(false);
 
-  // Mock user data - in a real app, this would come from your API/auth provider
+  // ✅ DEFAULT STRUCTURE (IMPORTANT)
   const [userData, setUserData] = useState({
-    name: 'Alex Johnson',
-    email: 'alex.johnson@example.com',
-    phone: '(555) 123-4567',
-    bio: 'Frontend developer passionate about React and modern web technologies. Currently learning advanced JavaScript concepts and UI/UX design principles.',
-    location: 'San Francisco, CA',
-    interests: ['Web Development', 'UX Design', 'JavaScript', 'React'],
-    website: 'https://alexjohnson.dev',
-    social: {
-      facebook: 'alexjohnson',
-      twitter: 'alexj_dev',
-      linkedin: 'alexjohnson',
-      github: 'alexj-dev',
-      instagram: 'alex.codes'
-    },
-    skills: ['HTML/CSS', 'JavaScript', 'React', 'TypeScript', 'UI Design'],
-    education: 'B.S. Computer Science, Stanford University',
-    timezone: 'Pacific Time (PT)'
+    full_name: "",
+    email: "",
+    phone: "",
+    bio: "",
+    location: "",
+
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    
-    // Handle nested properties like social.twitter
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setUserData(prev => ({
+
+    // ✅ Handle nested fields (social.twitter)
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".");
+      setUserData((prev: any) => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev] as Record<string, unknown>,
-          [child]: value
-        }
+          ...prev[parent],
+          [child]: value,
+        },
       }));
     } else {
-      setUserData(prev => ({
+      setUserData((prev: any) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
   const handleSaveProfile = () => {
+    saveUser(userData); // 🔥 SAVE TO SESSION STORAGE
     setIsEditing(false);
-    // In a real app, you would make an API call to update the profile
-    alert('Profile saved successfully!');
+    alert("Profile saved successfully!");
   };
 
   return (
     <StudentLayout>
       <div className="space-y-8">
-        <ProfileHeader 
-          isEditing={isEditing} 
-          setIsEditing={setIsEditing} 
-          onSaveProfile={handleSaveProfile} 
+        <ProfileHeader
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          onSaveProfile={handleSaveProfile}
         />
 
-        <ProfileTabs 
-          userData={userData} 
-          isEditing={isEditing} 
-          handleInputChange={handleInputChange} 
+        <ProfileTabs
+          userData={userData}
+          isEditing={isEditing}
+          handleInputChange={handleInputChange}
           handleSaveProfile={handleSaveProfile}
           setIsEditing={setIsEditing}
         />

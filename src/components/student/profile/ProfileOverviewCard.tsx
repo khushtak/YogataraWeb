@@ -1,96 +1,111 @@
+"use client";
 
-import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
-import { Github, Twitter, Linkedin, Globe, Upload } from 'lucide-react';
+import React, { useRef } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Upload } from "lucide-react";
+
+/* ================= TYPES ================= */
 
 interface ProfileData {
-  name: string;
+  full_name: string;
   email: string;
-  location: string;
-  timezone: string;
-  education: string;
-  social: {
-    github: string;
-    twitter: string;
-    linkedin: string;
-    instagram: string;
-  };
-  website: string;
+  avatar?: string; // base64 image
 }
 
 interface ProfileOverviewCardProps {
   userData: ProfileData;
   isEditing: boolean;
+  setUserData?: (data: ProfileData) => void;
 }
 
-const ProfileOverviewCard = ({ userData, isEditing }: ProfileOverviewCardProps) => {
+/* ============ INITIALS FUNCTION ============ */
+// Mridul soni -> MS
+// Amit Kumar Sharma -> AKS
+
+const getInitials = (full_name: string) => {
+  if (!full_name) return "U";
+
+  return full_name
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .map(word => word[0].toUpperCase())
+    .join("");
+};
+
+/* ============ COMPONENT ==================== */
+
+const ProfileOverviewCard = ({
+  userData,
+  isEditing,
+  setUserData,
+}: ProfileOverviewCardProps) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /* Avatar click */
+  const handleAvatarClick = () => {
+    if (isEditing) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  /* Image upload */
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      const updatedUser = {
+        ...userData,
+        avatar: reader.result as string,
+      };
+
+      setUserData?.(updatedUser);
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+    };
+
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="p-6 flex flex-col items-center text-center">
-      <div className="relative mb-4">
+      {/* ========= AVATAR ========= */}
+      <div
+        className="relative mb-4 cursor-pointer"
+        onClick={handleAvatarClick}
+      >
         <Avatar className="h-24 w-24">
-          <AvatarImage src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1760&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt={userData.name} />
-          <AvatarFallback>{userData.name.charAt(0)}</AvatarFallback>
+          {/* Image (only when uploaded) */}
+          <AvatarImage src={userData.avatar || ""} />
+
+          {/* Initials fallback */}
+          <AvatarFallback className="text-2xl font-semibold">
+            {getInitials(userData.full_name)}
+          </AvatarFallback>
         </Avatar>
+
+        {/* Upload icon */}
         {isEditing && (
-          <div className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-1 cursor-pointer">
+          <div className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-1">
             <Upload className="h-4 w-4" />
           </div>
         )}
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageChange}
+        />
       </div>
-      
-      <h2 className="text-xl font-bold mt-2">{userData.name}</h2>
+
+      {/* ========= USER INFO ========= */}
+      <h2 className="text-xl font-bold">{userData.full_name}</h2>
       <p className="text-muted-foreground">{userData.email}</p>
-      
-      <Separator className="my-4" />
-      
-      <div className="w-full text-left space-y-2">
-        <div>
-          <Label className="text-sm text-muted-foreground">Location</Label>
-          <p className="font-medium">{userData.location}</p>
-        </div>
-        
-        <div>
-          <Label className="text-sm text-muted-foreground">Timezone</Label>
-          <p className="font-medium">{userData.timezone}</p>
-        </div>
-        
-        <div>
-          <Label className="text-sm text-muted-foreground">Education</Label>
-          <p className="font-medium">{userData.education}</p>
-        </div>
-        
-        <div>
-          <Label className="text-sm text-muted-foreground">Member Since</Label>
-          <p className="font-medium">January 12, 2023</p>
-        </div>
-      </div>
-      
-      <Separator className="my-4" />
-      
-      <div className="flex justify-center space-x-3">
-        {userData.social.github && (
-          <a href={`https://github.com/${userData.social.github}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-            <Github className="h-5 w-5" />
-          </a>
-        )}
-        {userData.social.twitter && (
-          <a href={`https://twitter.com/${userData.social.twitter}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-            <Twitter className="h-5 w-5" />
-          </a>
-        )}
-        {userData.social.linkedin && (
-          <a href={`https://linkedin.com/in/${userData.social.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-            <Linkedin className="h-5 w-5" />
-          </a>
-        )}
-        {userData.website && (
-          <a href={userData.website} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-            <Globe className="h-5 w-5" />
-          </a>
-        )}
-      </div>
     </div>
   );
 };

@@ -10,18 +10,6 @@ interface UserData {
   phone: string;
   bio: string;
   location: string;
-  interests: string[];
-  website: string;
-  social: {
-    facebook: string;
-    twitter: string;
-    linkedin: string;
-    github: string;
-    instagram: string;
-  };
-  skills: string[];
-  timezone: string;
-  education: string;
 }
 
 interface ProfileTabProps {

@@ -10,40 +10,11 @@ import {
   getMonthName,
 } from "@/components/student/calendar/CalendarUtils";
 
-const STATIC_EVENTS = [
-  {
-    id: 1,
-    title: "Astrology Basics Assignment",
-    course: "Astrology 101",
-    date: "2026-01-21",
-    time: "10:00 AM - 12:00 PM",
-    location: "Online",
-    type: "assignment",
-  },
-  {
-    id: 2,
-    title: "Numerology Quiz",
-    course: "Numerology",
-    date: "2026-01-23",
-    time: "02:00 PM - 03:00 PM",
-    location: "Online",
-    type: "quiz",
-  },
-  {
-    id: 3,
-    title: "Vedic Astrology Exam",
-    course: "Vedic Astrology",
-    date: "2026-01-26",
-    time: "11:00 AM - 01:00 PM",
-    location: "Online",
-    type: "exam",
-  },
-];
-
 const StudentCalendar = () => {
   useEffect(() => window.scrollTo(0, 0), []);
 
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const today = new Date();
+  const [currentDate, setCurrentDate] = useState(today);
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
@@ -51,15 +22,22 @@ const StudentCalendar = () => {
 
   const days = generateCalendarDays(currentMonth, currentYear);
 
-  const today = new Date().toISOString().split("T")[0];
+  // Fresh student => no events
+  const todayEvents: any[] = [];
+  const upcomingEvents: any[] = [];
 
-  const todayEvents = STATIC_EVENTS.filter(
-    (event) => event.date === today
-  );
+  // Disable navigation if month goes out of current year
+  const handlePreviousMonth = () => {
+    if (currentDate.getFullYear() === today.getFullYear() && currentMonth > 0) {
+      setCurrentDate(new Date(currentYear, currentMonth - 1));
+    }
+  };
 
-  const upcomingEvents = STATIC_EVENTS.filter(
-    (event) => event.date > today
-  );
+  const handleNextMonth = () => {
+    if (currentDate.getFullYear() === today.getFullYear() && currentMonth < 11) {
+      setCurrentDate(new Date(currentYear, currentMonth + 1));
+    }
+  };
 
   return (
     <StudentLayout>
@@ -74,21 +52,19 @@ const StudentCalendar = () => {
         <CalendarHeader
           currentMonthName={currentMonthName}
           currentYear={currentYear}
-          onPrevious={() =>
-            setCurrentDate(new Date(currentYear, currentMonth - 1))
-          }
-          onNext={() =>
-            setCurrentDate(new Date(currentYear, currentMonth + 1))
-          }
+          onPrevious={handlePreviousMonth}
+          onNext={handleNextMonth}
           onToday={() => setCurrentDate(new Date())}
+          disablePrevious={currentMonth === 0}
+          disableNext={currentMonth === 11}
         />
 
         <CalendarGrid
           days={days}
-          currentDate={new Date()}
+          currentDate={today}
           displayMonth={currentMonth}
           displayYear={currentYear}
-          events={STATIC_EVENTS}
+          events={[]} // no events
         />
 
         <div className="grid gap-6 md:grid-cols-3">
@@ -99,9 +75,9 @@ const StudentCalendar = () => {
 
           <TodaysSchedule
             todayEvents={todayEvents}
-            currentMonthName={getMonthName(new Date().getMonth())}
-            currentDate={new Date()}
-            currentYear={new Date().getFullYear()}
+            currentMonthName={getMonthName(today.getMonth())}
+            currentDate={today}
+            currentYear={today.getFullYear()}
           />
         </div>
       </div>
