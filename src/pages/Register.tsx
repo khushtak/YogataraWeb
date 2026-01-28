@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { toast } from "@/hooks/use-toast";
+import baseUrl from "@/config/Config";
 
 const initialFormData = {
   full_name: "",
@@ -38,7 +39,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(`${baseUrl}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

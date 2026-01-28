@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import axios from "axios";
 import { saveToken, saveUser } from "@/utils/auth";
+import baseUrl from "@/config/Config";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const AdminLogin = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post("http://localhost:5000/api/login", {
+      const res = await axios.post(`${baseUrl}/login`, {
         email,
         password,
       });

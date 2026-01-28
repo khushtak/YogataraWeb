@@ -60,7 +60,7 @@ const CurriculumTab: React.FC<CurriculumTabProps> = ({
       const formData = new FormData();
       formData.append('video', file);
 
-      const response = await fetch('http://localhost:5000/api/upload-bunny-video', {
+      const response = await fetch(`${baseUrl}/upload-bunny-video`, {
         method: 'POST',
         body: formData,
       });

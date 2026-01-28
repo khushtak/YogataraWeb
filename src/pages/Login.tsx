@@ -7,6 +7,7 @@ import { ButtonCustom } from "@/components/ui/button-custom"
 import { toast } from "@/hooks/use-toast"
 import { jwtDecode } from "jwt-decode"
 import { saveUser, saveToken } from "@/utils/auth"
+import baseUrl from "@/config/Config"
 
 interface DecodedToken {
   userId: string
@@ -43,7 +44,7 @@ const Login = () => {
     setLoading(true)
 
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(`${baseUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
