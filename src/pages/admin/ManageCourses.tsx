@@ -27,7 +27,6 @@ const ManageCourses: React.FC = () => {
         students: Math.floor(Math.random() * 1000), // Mock student count
         price: parseFloat(course.coursePrice) || 0,
         status: "Published", // Randomized status
-        lastUpdated: "2024", // Placeholder, update if API provides this
       }));
 
       setAllCourses(formattedCourses);

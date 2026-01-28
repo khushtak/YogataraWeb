@@ -1,38 +1,47 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import StudentLayout from "@/components/student/StudentLayout";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { ButtonCustom } from "@/components/ui/button-custom";
-import { Filter, Search, X, Download, BookOpen } from "lucide-react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { Filter, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import baseUrl from "@/config/Config";
 
 /* ================= TYPES ================= */
 
+interface Lesson {
+  title: string;
+  duration: string;
+  completed: boolean;
+  type: string;
+}
+
+interface Module {
+  title: string;
+  lessons: Lesson[];
+}
+
 interface StudentCourse {
-  id: string;
+  id: string;              // 👉 courseId
   title: string;
   progress: number;
   instructor: string;
-  image?: string;
+  instructorBio?: string;
+  instructorImage?: string;
+  nextLesson: string;
+  nextLessonTime: string;
+  image: string;
   category: string;
   description: string;
-  videoUrl?: string;
-  completedDate?: string;
-}
-
-interface Review {
-  rating: number;
-  feedback: string;
+  modules: Module[];
 }
 
 /* ================= COMPONENT ================= */
@@ -41,78 +50,124 @@ const StudentCourses = () => {
   const [inProgressCourses, setInProgressCourses] = useState<StudentCourse[]>([]);
   const [completedCourses, setCompletedCourses] = useState<StudentCourse[]>([]);
 
-  const [showCertificate, setShowCertificate] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<StudentCourse | null>(null);
-  const certificateRef = useRef<HTMLDivElement>(null);
-
-  const [showReview, setShowReview] = useState(false);
-  const [reviewCourse, setReviewCourse] = useState<StudentCourse | null>(null);
-  const [rating, setRating] = useState(0);
-  const [feedback, setFeedback] = useState("");
-
-  /* ================= SECURITY ================= */
-
   useEffect(() => {
-    const disableRightClick = (e: MouseEvent) => e.preventDefault();
-    const disableKeys = (e: KeyboardEvent) => {
-      if (e.ctrlKey && ["u", "s", "c", "p", "a", "i", "j"].includes(e.key.toLowerCase()))
-        e.preventDefault();
-      if (e.key === "F12") e.preventDefault();
-    };
-
-    document.addEventListener("contextmenu", disableRightClick);
-    document.addEventListener("keydown", disableKeys);
-
-    return () => {
-      document.removeEventListener("contextmenu", disableRightClick);
-      document.removeEventListener("keydown", disableKeys);
-    };
+    window.scrollTo(0, 0);
+    getUserProgress("sayanmyself50@gmail.com");
   }, []);
 
-  /* ================= CERTIFICATE ================= */
+  /* ================= GET COURSE BY courseId ================= */
 
-  const downloadPDF = async () => {
-    if (!certificateRef.current) return;
+  const getCourseById = async (courseId: string) => {
+    try {
+      const response = await fetch(`${baseUrl}/get-course/${courseId}`);
 
-    const canvas = await html2canvas(certificateRef.current, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
+      if (!response.ok) {
+        console.warn("Course not found:", courseId);
+        return null; // ❗ crash prevent
+      }
 
-    const pdf = new jsPDF("landscape", "px", "a4");
-    const imgData = canvas.toDataURL("image/png");
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching course:", error);
+      return null;
+    }
+  };
 
-    const pdfW = pdf.internal.pageSize.getWidth();
-    const pdfH = pdf.internal.pageSize.getHeight();
+  /* ================= TRANSFORM USER PROGRESS ================= */
 
-    const ratio = Math.min(pdfW / canvas.width, pdfH / canvas.height);
+  const transformUserProgress = (userProgress: any, courses: any[]): StudentCourse[] => {
+    return userProgress.courseDetails.map((progressCourse: any) => {
+      const fullCourse = courses.find(
+        (c) => c?.courseId === progressCourse.courseId
+      );
 
-    pdf.addImage(
-      imgData,
-      "PNG",
-      (pdfW - canvas.width * ratio) / 2,
-      (pdfH - canvas.height * ratio) / 2,
-      canvas.width * ratio,
-      canvas.height * ratio
-    );
+      if (!fullCourse) return null;
 
-    pdf.save("certificate.pdf");
+      const instructor = fullCourse.courseInStructure?.[0] || {
+        name: "Unknown Instructor",
+        bio: "",
+        image: ""
+      };
+
+      return {
+        id: progressCourse.courseId, // ✅ ONLY courseId
+        title: fullCourse.courseName || "Untitled Course",
+        progress: Math.round(
+          (progressCourse.videosWatched / (progressCourse.totalVideos || 1)) * 100
+        ),
+        instructor: instructor.name,
+        instructorBio: instructor.bio,
+        instructorImage: instructor.image,
+        nextLesson: "Continue learning",
+        nextLessonTime: "",
+        image: fullCourse.courseImage,
+        category: fullCourse.courseCategory || "Course",
+        description: fullCourse.courseDescription || "",
+        modules: fullCourse.videoes || []
+      };
+    }).filter(Boolean);
+  };
+
+  /* ================= GET USER PROGRESS ================= */
+
+  const getUserProgress = async (userEmail: string) => {
+    try {
+      const response = await fetch(`${baseUrl}/user-progress/${userEmail}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch progress");
+      }
+
+      const courseIds = data.userProgress.courseDetails.map(
+        (c: any) => c.courseId
+      );
+
+      // ✅ fetch all courses using courseId
+      const courses = (
+        await Promise.all(courseIds.map((id: string) => getCourseById(id)))
+      ).filter(Boolean);
+
+      const transformed = transformUserProgress(data.userProgress, courses);
+
+      setCompletedCourses(transformed.filter(c => c.progress === 100));
+      setInProgressCourses(transformed.filter(c => c.progress < 100));
+    } catch (error) {
+      console.error("Error fetching user progress:", error);
+    }
   };
 
   /* ================= UI ================= */
 
   return (
     <StudentLayout>
-      <div className="space-y-8 p-4">
+      <div className="space-y-8">
 
         {/* HEADER */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">My Courses</h1>
+            <h1 className="text-3xl font-bold mb-2">My Courses</h1>
             <p className="text-muted-foreground">
               Manage and track your learning journey
             </p>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" />
+              <input
+                placeholder="Search courses..."
+                className="pl-9 pr-4 py-2 border rounded-md"
+              />
+            </div>
+            <ButtonCustom variant="outline">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </ButtonCustom>
           </div>
         </div>
 
@@ -127,130 +182,73 @@ const StudentCourses = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* ================= IN PROGRESS ================= */}
-          <TabsContent value="in-progress" className="mt-6">
-            {inProgressCourses.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {inProgressCourses.map((course) => (
-                  <CourseCard key={course.id} course={course} />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* ================= COMPLETED ================= */}
-          <TabsContent value="completed" className="mt-6">
-            {completedCourses.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {completedCourses.map((course) => (
-                  <CompletedCard
-                    key={course.id}
-                    course={course}
-                    setSelectedCourse={setSelectedCourse}
-                    setShowCertificate={setShowCertificate}
-                    setReviewCourse={setReviewCourse}
-                    setShowReview={setShowReview}
+          {/* IN PROGRESS */}
+          <TabsContent value="in-progress">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {inProgressCourses.map(course => (
+                <Card key={course.id}>
+                  <img
+                    src={course.image}
+                    className="h-40 w-full object-cover"
                   />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
 
-        {/* ================= CERTIFICATE MODAL ================= */}
-        {showCertificate && selectedCourse && (
-          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-xl w-full max-w-4xl relative">
-              <button
-                className="absolute top-4 right-4"
-                onClick={() => setShowCertificate(false)}
-              >
-                <X />
-              </button>
+                  <CardHeader>
+                    <CardTitle>{course.title}</CardTitle>
+                    <CardDescription>
+                      Instructor: {course.instructor}
+                    </CardDescription>
+                  </CardHeader>
 
-              <div ref={certificateRef} className="p-10 border-4 rounded-xl">
-                <h1 className="text-3xl font-bold text-center">
-                  Certificate of Completion
-                </h1>
-                <p className="text-center mt-4 text-xl">
-                  {selectedCourse.title}
-                </p>
-              </div>
+                  <CardContent>
+                    <Progress value={course.progress} />
+                    <p className="text-sm mt-2">{course.progress}% completed</p>
+                  </CardContent>
 
-              <ButtonCustom className="mt-6 w-full" onClick={downloadPDF}>
-                <Download className="mr-2" />
-                Download Certificate
-              </ButtonCustom>
+                  <CardFooter>
+                    <Link to={`/course/${course.id}`} className="w-full">
+                      <ButtonCustom className="w-full">
+                        Continue Learning
+                      </ButtonCustom>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
-          </div>
-        )}
+          </TabsContent>
+
+          {/* COMPLETED */}
+          <TabsContent value="completed">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {completedCourses.map(course => (
+                <Card key={course.id}>
+                  <img
+                    src={course.image}
+                    className="h-40 w-full object-cover"
+                  />
+
+                  <CardHeader>
+                    <CardTitle>{course.title}</CardTitle>
+                    <CardDescription>
+                      Instructor: {course.instructor}
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardFooter>
+                    <Link to={`/course/${course.id}`} className="w-full">
+                      <ButtonCustom variant="secondary" className="w-full">
+                        Review Course
+                      </ButtonCustom>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+        </Tabs>
       </div>
     </StudentLayout>
   );
 };
-
-/* ================= EMPTY STATE ================= */
-
-const EmptyState = () => (
-  <div className="text-center py-16">
-    <BookOpen className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
-    <p className="text-muted-foreground mb-4">
-      You haven’t enrolled in any courses yet.
-    </p>
-    <Link to="/courses">
-      <ButtonCustom>Explore Courses</ButtonCustom>
-    </Link>
-  </div>
-);
-
-/* ================= CARDS ================= */
-
-const CourseCard = ({ course }: { course: StudentCourse }) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>{course.title}</CardTitle>
-      <CardDescription>Instructor: {course.instructor}</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <Progress value={course.progress} />
-    </CardContent>
-    <CardFooter>
-      <ButtonCustom className="w-full">Continue</ButtonCustom>
-    </CardFooter>
-  </Card>
-);
-
-const CompletedCard = ({ course, setSelectedCourse, setShowCertificate, setReviewCourse, setShowReview }: any) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>{course.title}</CardTitle>
-      <CardDescription>Completed</CardDescription>
-    </CardHeader>
-    <CardFooter className="grid grid-cols-2 gap-2">
-      <ButtonCustom
-        variant="outline"
-        onClick={() => {
-          setSelectedCourse(course);
-          setShowCertificate(true);
-        }}
-      >
-        Certificate
-      </ButtonCustom>
-      <ButtonCustom
-        variant="secondary"
-        onClick={() => {
-          setReviewCourse(course);
-          setShowReview(true);
-        }}
-      >
-        Review
-      </ButtonCustom>
-    </CardFooter>
-  </Card>
-);
 
 export default StudentCourses;

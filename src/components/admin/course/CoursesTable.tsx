@@ -51,13 +51,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses }) => {
                 Price
               </div>
             </TableHead>
-            <TableHead>
-              <div className="flex items-center">
-                <Clock className="mr-2 h-4 w-4" />
-                Last Updated
-              </div>
-            </TableHead>
-            <TableHead>Status</TableHead>
+        
             <TableHead className="w-[80px]">Actions</TableHead>
           </TableRow>
         </TableHeader>

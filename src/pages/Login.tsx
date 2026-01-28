@@ -9,11 +9,9 @@ import { jwtDecode } from "jwt-decode"
 import { saveUser, saveToken } from "@/utils/auth"
 
 interface DecodedToken {
-  user_id: string
-  email: string
-  full_name: string
-  role: string
-  email_verified: boolean
+  userId: string
+  iat: number
+  exp: number
 }
 
 const initialFormData = {
@@ -28,7 +26,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(initialFormData)
 
-  /* ✅ PAGE LOAD PE CLEAR + AUTOFILL FIX */
   useEffect(() => {
     setFormData(initialFormData)
     window.scrollTo(0, 0)
@@ -46,38 +43,37 @@ const Login = () => {
     setLoading(true)
 
     try {
-      const res = await fetch("http://192.168.29.73:8000/api/auth/login/", {
+      const res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
 
       const data = await res.json()
+      console.log("LOGIN RESPONSE 👉", data)
 
-      // ❌ ERROR
       if (!res.ok) {
         toast({
           variant: "destructive",
           title: "Login failed",
-          description:
-            data?.error ||
-            data?.detail ||
-            "Invalid email or password",
+          description: data?.message || "Invalid email or password",
           duration: 2500,
         })
         return
       }
 
-      // ✅ SAVE TOKEN
-      saveToken(data.access)
+      /* ✅ TOKEN SAVE (FIXED) */
+      saveToken(data.token)
 
-      // ✅ DECODE & SAVE USER
-      const decoded = jwtDecode<DecodedToken>(data.access)
-      saveUser(decoded)
+      /* ✅ TOKEN DECODE (FIXED) */
+      const decoded = jwtDecode<DecodedToken>(data.token)
+
+      /* ✅ USER SAVE (BACKEND SE AAYA HUA) */
+      saveUser(data.user)
 
       toast({
-        title: "Login successful ✅",
-        description: "Welcome back to Yogtara",
+        title: "Login successful",
+        description: "Welcome back to Yogtara 🌿",
         duration: 1500,
       })
 
@@ -87,7 +83,7 @@ const Login = () => {
         navigate("/student")
       }, 1500)
 
-    } catch {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Server error",
@@ -102,7 +98,6 @@ const Login = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      {/* 🔄 FULL PAGE LOADER */}
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="animate-spin w-16 h-16 rounded-full border-4 border-primary border-t-transparent" />
@@ -110,20 +105,13 @@ const Login = () => {
       )}
 
       <main className="flex-1 flex items-center justify-center px-4 pt-24 pb-16 relative overflow-hidden">
-        {/* BACKGROUND BLUR */}
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl" />
 
-        <div
-          className="relative w-full max-w-5xl grid md:grid-cols-2
-          bg-card text-card-foreground border border-border
-          rounded-2xl shadow-xl overflow-hidden"
-        >
-          {/* LEFT PANEL */}
+        <div className="relative w-full max-w-5xl grid md:grid-cols-2 bg-card text-card-foreground border border-border rounded-2xl shadow-xl overflow-hidden">
+          {/* LEFT */}
           <div className="hidden md:flex flex-col justify-center px-10 bg-primary text-primary-foreground">
-            <h2 className="text-3xl font-bold mb-4">
-              Welcome Back 🌿
-            </h2>
+            <h2 className="text-3xl font-bold mb-4">Welcome Back 🌿</h2>
             <p className="opacity-90">
               Continue your journey towards mindfulness and wellness with Yogtara.
             </p>
@@ -135,25 +123,16 @@ const Login = () => {
             </ul>
           </div>
 
-          {/* RIGHT PANEL */}
+          {/* RIGHT */}
           <div className="p-8 sm:p-10">
-            <h1 className="text-2xl font-semibold mb-2">
-              Sign in
-            </h1>
+            <h1 className="text-2xl font-semibold mb-2">Sign in</h1>
             <p className="text-muted-foreground mb-8">
               Login to your account
             </p>
 
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-6"
-              autoComplete="off"
-            >
-              {/* EMAIL */}
+            <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Email
-                </label>
+                <label className="text-sm font-medium mb-2 block">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
@@ -161,21 +140,15 @@ const Login = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="you@example.com"
+                    placeholder="Enter your email"
                     required
-                    autoComplete="new-email"
-                    className="w-full h-12 pl-11 pr-4 rounded-lg
-                      bg-background border border-input
-                      focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-12 pl-11 pr-4 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
               </div>
 
-              {/* PASSWORD */}
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Password
-                </label>
+                <label className="text-sm font-medium mb-2 block">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
@@ -185,10 +158,7 @@ const Login = () => {
                     onChange={handleChange}
                     placeholder="Enter your password"
                     required
-                    autoComplete="new-password"
-                    className="w-full h-12 pl-11 pr-12 rounded-lg
-                      bg-background border border-input
-                      focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-12 pl-11 pr-12 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <button
                     type="button"
@@ -200,10 +170,7 @@ const Login = () => {
                 </div>
               </div>
 
-              <ButtonCustom
-                type="submit"
-                className="w-full h-12 text-base"
-              >
+              <ButtonCustom type="submit" className="w-full h-12 text-base">
                 Sign In
               </ButtonCustom>
 

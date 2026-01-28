@@ -5,9 +5,9 @@ import ProfileOverviewCard from '../ProfileOverviewCard';
 import ProfileDetailsForm from '../ProfileDetailsForm';
 
 interface UserData {
-  name: string;
+  fullName: string;
   email: string;
-  phone: string;
+  phoneNumber: string;
   bio: string;
   location: string;
 }

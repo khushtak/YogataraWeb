@@ -268,30 +268,51 @@ const ManageQuestions = () => {
     return `${initials}${randomNumber}`;
   };
 
-  const addQuestions = async (courseId: string, questions: any) => {
+const addQuestions = async (courseId: string, questions: any) => {
+  try {
+    const response = await fetch(`${baseUrl}/add-questions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // 🔐 agar admin protected API hai
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        courseId,
+        testId: courseId,
+        questions,
+      }),
+    });
+
+    // ❗ pehle text lo
+    const text = await response.text();
+
+    // ❗ try to parse JSON
+    let data;
     try {
-      // const testId = generateId(courseId);
-      const response = await fetch(`${baseUrl}/add-questions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ courseId, testId: courseId, questions }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to add questions");
-      }
-
-      console.log("Questions added successfully:", data);
-      return data; // Return response for further use
-    } catch (error) {
-      console.error("Error adding questions:", error);
-      return null;
+      data = JSON.parse(text);
+    } catch {
+      console.error("Backend returned non-JSON:", text);
+      throw new Error("Server error (non-JSON response)");
     }
-  };
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to add questions");
+    }
+
+    console.log("✅ Questions added:", data);
+    return data;
+
+  } catch (error: any) {
+    console.error("❌ Error adding questions:", error.message);
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
+    return null;
+  }
+};
 
   return (
     <AdminLayout>

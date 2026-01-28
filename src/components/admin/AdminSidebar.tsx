@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -10,12 +10,27 @@ import {
   Settings,
   LogOut,
   ChevronRight,
-  Tag,          // ✅ Coupon icon
+  Tag,
 } from "lucide-react";
 import { GiShipWheel } from "react-icons/gi";
 
 const AdminSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // 🔥 LOGOUT FUNCTION
+  const handleLogout = () => {
+    // ✅ clear all auth data
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    localStorage.removeItem("isAdmin");
+
+    sessionStorage.clear();
+
+    // ✅ redirect to admin login
+    navigate("/admin-login", { replace: true });
+  };
 
   const menuItems = [
     {
@@ -44,7 +59,7 @@ const AdminSidebar = () => {
       path: "/admin/subscribed-students",
     },
     {
-      title: "Coupons",              // ✅ NEW
+      title: "Coupons",
       icon: Tag,
       path: "/admin/coupons",
     },
@@ -60,11 +75,11 @@ const AdminSidebar = () => {
     },
   ];
 
-  const isActive = (path) => location.pathname.startsWith(path);
+  const isActive = (path: string) => location.pathname.startsWith(path);
 
   return (
     <div className="h-screen w-64 bg-card border-r border-border flex flex-col">
-      {/* Logo */}
+      {/* LOGO */}
       <div className="p-6">
         <Link to="/admin" className="flex items-center space-x-2">
           <GiShipWheel className="h-8 w-8 text-primary" />
@@ -77,7 +92,7 @@ const AdminSidebar = () => {
         </p>
       </div>
 
-      {/* Menu */}
+      {/* MENU */}
       <nav className="flex-1 px-4">
         <ul className="space-y-1">
           {menuItems.map((item) => {
@@ -112,15 +127,15 @@ const AdminSidebar = () => {
         </ul>
       </nav>
 
-      {/* Logout */}
+      {/* LOGOUT */}
       <div className="p-4 border-t border-border">
-        <Link
-          to="/login"
-          className="flex items-center px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition"
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition"
         >
           <LogOut className="h-5 w-5 mr-3" />
           Log out
-        </Link>
+        </button>
       </div>
     </div>
   );

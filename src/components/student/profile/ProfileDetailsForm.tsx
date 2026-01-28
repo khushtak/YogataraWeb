@@ -21,7 +21,7 @@ const ProfileDetailsForm = ({
           <Label>Full Name</Label>
           <Input
             name="full_name"
-            value={userData.full_name}
+            value={userData.fullName}
             onChange={handleInputChange}
             disabled={!isEditing}
           />
@@ -42,7 +42,7 @@ const ProfileDetailsForm = ({
           <Label>Phone</Label>
           <Input
             name="phone"
-            value={userData.phone}
+            value={userData.phoneNumber}
             onChange={handleInputChange}
             disabled={!isEditing}
           />

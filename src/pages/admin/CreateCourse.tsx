@@ -348,9 +348,10 @@ const CreateCourse = () => {
         },
         body: JSON.stringify(courseData),
       });
+console.log('dd2',response);
 
       const data = await response.json();
-
+console.log('dd',data);
       if (!response.ok) {
         throw new Error(data.message || "Failed to add course");
       }

@@ -32,75 +32,61 @@ const Register = () => {
     });
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  /* ================= REGISTER API ================= */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const res = await fetch("http://192.168.29.73:8000/api/auth/signup/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-        full_name: formData.full_name,
-        role: "student",
-      }),
-    });
-
-    let data: any = {};
     try {
-      data = await res.json();
-    } catch {}
+      const res = await fetch("http://localhost:5000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: formData.full_name, // 🔥 backend expects fullName
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-    console.log("API RESPONSE 👉", data);
+      const data = await res.json();
+      console.log("REGISTER RESPONSE 👉", data);
 
-    // ❌ ERROR CASE
-    if (!res.ok) {
-  const message =
-    data?.email?.[0] ||
-    data?.password?.[0] ||
-    "Registration failed"
+      /* ❌ ERROR CASE */
+      if (!res.ok) {
+        toast({
+          variant: "destructive",
+          title: "Registration failed",
+          description: data?.message || "Something went wrong",
+          duration: 2000,
+        });
+        setLoading(false);
+        return;
+      }
 
-  toast({
-    variant: "destructive",
-    title: "Registration failed",
-    description: message,
-    duration: 2000,
-  })
+      /* ✅ SUCCESS CASE (EMAIL VERIFICATION) */
+      toast({
+        title: "Account created 🎉",
+        description: "Verification email sent. Please check your inbox 📩",
+        duration: 2500,
+      });
 
-  setLoading(false)
-  return
-}
+      setTimeout(() => {
+        navigate("/login");
+      }, 2500);
 
-    // ✅ SUCCESS CASE
-    toast({
-      title: "Account created 🎉",
-      description: "Redirecting to login...",
-      duration: 1500,
-    });
-
-    setTimeout(() => {
-      navigate("/login");
-    }, 1500);
-
-  } catch (error) {
-    toast({
-      variant: "destructive",
-      title: "Server error",
-      description: "Please try again later",
-      duration: 2000,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Server error",
+        description: "Please try again later",
+        duration: 2000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

@@ -4,6 +4,7 @@ import { Menu, X, Search, User, Laptop, Moon, Sun, LogOut } from "lucide-react";
 import { ButtonCustom } from "./ui/button-custom";
 import { cn } from "@/lib/utils";
 import { GiShipWheel } from "react-icons/gi";
+import { getUser } from "@/utils/auth";
 
 /* 🔥 LOGOUT */
 const logoutUser = (navigate: any) => {
@@ -25,7 +26,8 @@ const Navbar = () => {
 
   const location = useLocation();
   const isLoggedIn = !!localStorage.getItem("token");
-
+  const userData=getUser()
+console.log("op",userData)
   useEffect(() => {
     const root = document.documentElement;
     theme === "dark"
@@ -93,26 +95,39 @@ const Navbar = () => {
             {theme === "dark" ? <Sun /> : <Moon />}
           </button>
 
-          {isLoggedIn ? (
-            <>
-              <Link to="/student">
-                <ButtonCustom size="sm" variant="outline">
-                  <Laptop className="h-4 w-4 mr-2" />
-                  Dashboard
-                </ButtonCustom>
-              </Link>
-              <button
-                onClick={() => logoutUser(navigate)}
-                className="p-2 rounded-full bg-muted"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </>
-          ) : (
-            <Link to="/login">
-              <User />
-            </Link>
-          )}
+       {isLoggedIn ? (
+  <>
+    {userData?.role === "student" && (
+      <Link to="/student">
+        <ButtonCustom size="sm" variant="outline">
+          <Laptop className="h-4 w-4 mr-2" />
+          Student Dashboard
+        </ButtonCustom>
+      </Link>
+    )}
+
+    {userData?.role === "admin" && (
+      <Link to="/admin">
+        <ButtonCustom size="sm" variant="outline">
+          <Laptop className="h-4 w-4 mr-2" />
+          Admin Dashboard
+        </ButtonCustom>
+      </Link>
+    )}
+
+    <button
+      onClick={() => logoutUser(navigate)}
+      className="p-2 rounded-full bg-muted"
+    >
+      <LogOut className="h-4 w-4" />
+    </button>
+  </>
+) : (
+  <Link to="/login">
+    <User />
+  </Link>
+)}
+
         </div>
 
         {/* MOBILE MENU BUTTON */}

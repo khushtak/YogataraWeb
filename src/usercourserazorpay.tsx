@@ -260,11 +260,86 @@ export function useCourse(id: string | undefined) {
 
 
 
-  const handleEnroll = () => {
-    // console.log("sayanmyself50@gmail.com", course?.id, course?.title, course?.sections?.length || 0);
+const handleEnroll = async () => {
+  try {
+    const res = await loadRazorpayScript();
 
-    addProgress("sayanmyself50@gmail.com", course?.id, course?.title, course?.sections?.length || 0)
-  };
+    if (!res) {
+      toast({
+        title: "Razorpay SDK failed",
+        description: "Please check your internet connection",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    /* ================= CREATE ORDER ================= */
+    const orderResponse = await fetch(`${baseUrl}/create-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: course.price, // ₹ amount
+        courseId: course.id,
+      }),
+    });
+
+    const orderData = await orderResponse.json();
+
+    if (!orderResponse.ok) {
+      toast({
+        title: "Order creation failed",
+        description: orderData.message || "Something went wrong",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    /* ================= RAZORPAY OPTIONS ================= */
+    const options = {
+      key: "rzp_live_RRFHHC0NDEGi6g", // 🔴 Razorpay Key ID
+      amount: orderData.amount,
+      currency: "INR",
+      name: "Yogatara",
+      description: course.title,
+      order_id: orderData.orderId,
+
+      handler: async function (response: any) {
+        // ✅ PAYMENT SUCCESS
+
+        await addProgress(
+          "sayanmyself50@gmail.com",
+          course.id,
+          course.title,
+          course.sections?.length || 0
+        );
+
+        toast({
+          title: "Payment Successful 🎉",
+          description: "You are now enrolled in this course",
+        });
+      },
+
+      prefill: {
+        email: "sayanmyself50@gmail.com",
+      },
+
+      theme: {
+        color: "#BE7169",
+      },
+    };
+
+    const razorpay = new (window as any).Razorpay(options);
+    razorpay.open();
+
+  } catch (error) {
+    console.error("Razorpay Error:", error);
+    toast({
+      title: "Payment failed",
+      description: "Something went wrong",
+      variant: "destructive",
+    });
+  }
+};
 
   const handleShare = () => {
     if (navigator.share) {

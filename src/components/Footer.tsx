@@ -28,7 +28,7 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               <a
-                href="#"
+                href="https://www.facebook.com/edgar.971876"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Facebook className="h-5 w-5" />
@@ -40,19 +40,20 @@ const Footer = () => {
                 <Twitter className="h-5 w-5" />
               </a>
               <a
-                href="#"
+                href="https://www.linkedin.com/in/mridul-kabra"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Linkedin className="h-5 w-5" />
               </a>
               <a
-                href="#"
+                href="https://www.youtube.com/@mridulkabraastrology"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Youtube className="h-5 w-5" />
               </a>
               <a
-                href="#"
+            
+                href="https://www.instagram.com/mridul.kabra/"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Instagram className="h-5 w-5" />

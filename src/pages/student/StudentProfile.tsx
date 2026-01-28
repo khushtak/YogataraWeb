@@ -4,59 +4,95 @@ import React, { useEffect, useState } from "react";
 import StudentLayout from "@/components/student/StudentLayout";
 import ProfileHeader from "@/components/student/profile/ProfileHeader";
 import ProfileTabs from "@/components/student/profile/ProfileTabs";
-import { getUser, saveUser } from "@/utils/auth";
+import { getUser, saveUser, getToken } from "@/utils/auth";
+import { toast } from "@/components/ui/use-toast";
+import baseUrl from "@/config/Config";
+
 
 const StudentProfile = () => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [userData, setUserData] = useState({
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    location: "",
+  });
+
+  // 🔥 Load user from session
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    // 🔥 LOAD USER FROM SESSION STORAGE
     const storedUser = getUser();
-    console.log("Loaded user from session:", storedUser);
     if (storedUser) {
-      setUserData(storedUser);
+      setUserData({
+        fullName: storedUser.fullName || "",
+        email: storedUser.email || "",
+        phoneNumber: storedUser.phoneNumber || "",
+        location: storedUser.location || "",
+      });
     }
   }, []);
 
-  const [isEditing, setIsEditing] = useState(false);
-
-  // ✅ DEFAULT STRUCTURE (IMPORTANT)
-  const [userData, setUserData] = useState({
-    full_name: "",
-    email: "",
-    phone: "",
-    bio: "",
-    location: "",
-
-  });
-
+  // ✏️ Input handler
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
-
-    // ✅ Handle nested fields (social.twitter)
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      setUserData((prev: any) => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value,
-        },
-      }));
-    } else {
-      setUserData((prev: any) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setUserData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSaveProfile = () => {
-    saveUser(userData); // 🔥 SAVE TO SESSION STORAGE
-    setIsEditing(false);
-    alert("Profile saved successfully!");
+  // 🚀 EDIT PROFILE (USERID BASED)
+  const handleSaveProfile = async () => {
+    try {
+      const token = getToken();
+      const user = getUser();
+console.log("USER DATA TO SAVE 👉", user);
+      if (!user || !user.id) throw new Error("User not logged in");
+
+      const response = await fetch(`${baseUrl}/edit-profile/${user.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          fullName: userData.fullName,
+          phoneNumber: userData.phoneNumber,
+          location: userData.location,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Update failed");
+      }
+
+      // 🔥 Update session storage
+      saveUser({
+        ...getUser(),
+        fullName: data.user.fullName,
+        phoneNumber: data.user.phoneNumber,
+        location: data.user.location,
+      });
+
+      toast({
+        title: "Success",
+        description: data.message,
+      });
+
+      setIsEditing(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (

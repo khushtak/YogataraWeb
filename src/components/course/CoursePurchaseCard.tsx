@@ -1,8 +1,9 @@
-
-import React from 'react';
-import { PlayCircle, Share2, Award, Download } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { PlayCircle, Share2, X } from 'lucide-react';
 import { ButtonCustom } from '@/components/ui/button-custom';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
+import { getUser } from '@/utils/auth';
 
 interface CoursePurchaseCardProps {
   course: any;
@@ -11,97 +12,139 @@ interface CoursePurchaseCardProps {
   handleShare: () => void;
 }
 
-const CoursePurchaseCard = ({ course, isEnrolled, handleEnroll, handleShare }: CoursePurchaseCardProps) => (
-  <div className="rounded-xl overflow-hidden border border-border bg-card shadow-sm">
-    <div className="relative aspect-video rounded-t-lg overflow-hidden">
-      <img
-        src={course.thumbnail}
-        alt={course.title}
-        className="w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-        <div className="rounded-full bg-white/20 p-3 backdrop-blur-sm">
-          <PlayCircle className="h-10 w-10 text-white" />
-        </div>
-      </div>
-      {course.bestseller && (
-        <div className="absolute top-3 left-3">
-          <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600">Bestseller</Badge>
-        </div>
-      )}
-    </div>
-    
-    <div className="p-6">
-      <div className="mb-4">
-        <p className="text-2xl font-bold mb-2">
-          ${course.price.toFixed(2)}
-        </p>
-        {course.originalPrice && (
-          <div className="flex items-center">
-            <span className="text-muted-foreground line-through mr-2">${course.originalPrice.toFixed(2)}</span>
-            <span className="text-sm text-muted-foreground">
-              {Math.round((1 - course.price / course.originalPrice) * 100)}% off
-            </span>
+const CoursePurchaseCard = ({
+  course,
+  isEnrolled,
+  handleEnroll,
+  handleShare
+}: CoursePurchaseCardProps) => {
+
+  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
+
+  /* ================= GET USER ================= */
+  useEffect(() => {
+    const storedUser = getUser(); // ✅ already object
+    if (storedUser) setUser(storedUser);
+  }, []);
+
+  /* ================= COMMON LOGIN CHECK ================= */
+  const checkLogin = (callback: () => void) => {
+    if (!user) {
+      setShowLoginPopup(true);
+      return;
+    }
+    callback();
+  };
+
+  return (
+    <>
+      {/* ================= CARD ================= */}
+      <div className="rounded-xl overflow-hidden border border-border bg-card shadow-sm">
+        <div className="relative aspect-video rounded-t-lg overflow-hidden">
+          <img
+            src={course.thumbnail}
+            alt={course.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+            <div className="rounded-full bg-white/20 p-3 backdrop-blur-sm">
+              <PlayCircle className="h-10 w-10 text-white" />
+            </div>
           </div>
-        )}
-        <p className="text-sm text-muted-foreground mt-2">
-          <span className="font-medium text-destructive">4 days</span> left at this price!
-        </p>
+
+          {course.bestseller && (
+            <div className="absolute top-3 left-3">
+              <Badge className="bg-yellow-500">Bestseller</Badge>
+            </div>
+          )}
+        </div>
+
+        <div className="p-6">
+          <p className="text-2xl font-bold mb-4">
+            ₹{course.price}
+          </p>
+
+          {!isEnrolled ? (
+            <>
+              {/* ENROLL */}
+              <ButtonCustom
+                className="w-full mb-3"
+                size="lg"
+                onClick={() => checkLogin(handleEnroll)}
+              >
+                Enroll Now
+              </ButtonCustom>
+
+              {/* TRY FREE */}
+              <ButtonCustom
+                className="w-full mb-3"
+                size="lg"
+                variant="outline"
+                onClick={() =>
+                  checkLogin(() => console.log("Try free"))
+                }
+              >
+                Try For Free
+              </ButtonCustom>
+            </>
+          ) : (
+            <ButtonCustom
+              className="w-full mb-3"
+              size="lg"
+              variant="secondary"
+              onClick={() =>
+                checkLogin(() => navigate(`/my-courses/${course.id}`))
+              }
+            >
+              Continue Learning
+            </ButtonCustom>
+          )}
+
+          {/* SHARE */}
+          <button
+            className="w-full py-2.5 px-4 border border-border rounded-md flex items-center justify-center text-sm font-medium hover:bg-accent/50"
+            onClick={() => checkLogin(handleShare)}
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Share this course
+          </button>
+        </div>
       </div>
-      
-      {!isEnrolled ? (
-        <>
-          <ButtonCustom 
-            className="w-full mb-3" 
-            size="lg"
-            onClick={handleEnroll}
-          >
-            Enroll Now
-          </ButtonCustom>
-          <ButtonCustom 
-            className="w-full mb-3" 
-            size="lg"
-            variant="outline"
-          >
-            Try For Free
-          </ButtonCustom>
-        </>
-      ) : (
-        <ButtonCustom 
-          className="w-full mb-3" 
-          size="lg"
-          variant="secondary"
-        >
-          Continue Learning
-        </ButtonCustom>
+
+      {/* ================= LOGIN POPUP ================= */}
+      {showLoginPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-white rounded-xl w-[90%] max-w-md p-6 relative">
+
+            <button
+              onClick={() => setShowLoginPopup(false)}
+              className="absolute top-3 right-3 text-gray-500"
+            >
+              <X />
+            </button>
+
+            <h2 className="text-xl font-bold text-center mb-3">
+              Login Required
+            </h2>
+
+            <p className="text-center text-gray-600 mb-6">
+              Please login to continue
+            </p>
+
+            <ButtonCustom
+              className="w-full"
+              size="lg"
+              onClick={() => navigate('/login')}
+            >
+              Go to Login
+            </ButtonCustom>
+          </div>
+        </div>
       )}
-      
-      <button 
-        className="w-full py-2.5 px-4 border border-border rounded-md flex items-center justify-center text-sm font-medium hover:bg-accent/50 transition-colors"
-        onClick={handleShare}
-      >
-        <Share2 className="h-4 w-4 mr-2" />
-        Share this course
-      </button>
-      
-      {/* <div className="mt-6 space-y-3">
-        <button className="flex items-center text-sm text-primary font-medium">
-          <Award className="h-4 w-4 mr-2" />
-          Apply Coupon
-        </button>
-        <button className="flex items-center text-sm text-primary font-medium">
-          <Download className="h-4 w-4 mr-2" />
-          Gift This Course
-        </button>
-      </div> */}
-      
-      {/* <div className="mt-6">
-        <p className="text-sm text-center text-muted-foreground">
-          Last updated: {course.lastUpdated}
-        </p>
-      </div> */}
-    </div>
-  </div>
-);
+    </>
+  );
+};
 
 export default CoursePurchaseCard;
