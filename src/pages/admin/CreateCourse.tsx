@@ -92,12 +92,11 @@ const CreateCourse = () => {
 
   // Helper function to handle course detail changes
   const handleCourseDetailChange = (field, value) => {
-    console.log('oopopop',field,value);
-    
     setCourseDetails({
       ...courseDetails,
       [field]: value
     });
+    
   };
 
   // Helper function to handle instructor detail changes
@@ -271,58 +270,55 @@ const CreateCourse = () => {
     }
   };
 
-  const generateCourseId = (courseName: string): string => {
-    const initials = courseName
-      .split(" ")
-      .map(word => word[0].toUpperCase())
-      .join("");
 
-    const randomNumber = Math.floor(Math.random() * 90) + 10; // Generates a random number between 10-99
-
-    return `${initials}${randomNumber}`;
-  };
 
   // Save the course
-  const handleSaveCourse = async (status = courseDetails.status) => {
-    if (!courseDetails.title) {
-      alert('Please enter a course title.');
-      return;
-    }
+ const handleSaveCourse = async () => {
+  if (!courseDetails.title) {
+    alert("Please enter a course title");
+    return;
+  }
 
-    if (!thumbnail) {
-      alert('Please upload a thumbnail for your course.');
-      return;
-    }
+  if (!courseDetails.category) {
+    alert("Please select a category");
+    return;
+  }
 
-    const newCourseId = generateCourseId(courseDetails.title);
+  if (!thumbnail) {
+    alert("Please upload a thumbnail");
+    return;
+  }
 
-    // ✅ Ensure file upload works before proceeding
-    const previewImage = await uploadFile(thumbnail);
-    if (!previewImage) {
-      alert("File upload failed. Please try again.");
-      return;
-    }
+  const previewImage = await uploadFile(thumbnail);
+  if (!previewImage) return;
 
-    const courseData = {
-      courseName: courseDetails.title,
-      courseId: newCourseId,
-      courseImage: previewImage,
-      courseShortDescription: courseDetails.shortDescription,
-      courseDescription: courseDetails.longDescription,
-      courseLanguage: courseDetails.language,
-      courseDuration: courseDetails.duration,
-      courseLevel: courseDetails.level,
-      coursePrice: courseDetails.price,
-      courseCategory: courseDetails.category,
-      courseInStructure: instructorDetails,
-      tags: courseDetails.tags,
-      whatYouWillLearn: whatYouWillLearn,
-      requirements: requirements,
-      videoes: sections,
-    };
+  const courseData = {
+    courseName: courseDetails.title,
 
-    await addCourse(courseData);
+    // ✅ SLUG IN courseId
+    courseId: courseDetails.category, 
+
+    courseImage: previewImage,
+    courseShortDescription: courseDetails.shortDescription,
+    courseDescription: courseDetails.longDescription,
+    courseLanguage: courseDetails.language,
+    courseDuration: courseDetails.duration,
+    courseLevel: courseDetails.level,
+    coursePrice: courseDetails.price,
+
+    // optional: same slug again if needed
+    courseCategory: courseDetails.category,
+
+    courseInStructure: instructorDetails,
+    tags: courseDetails.tags,
+    whatYouWillLearn,
+    requirements,
+    videoes: sections,
   };
+
+  await addCourse(courseData);
+};
+
 
 
   const addCourse = async (courseData: {
