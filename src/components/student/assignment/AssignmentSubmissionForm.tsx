@@ -135,14 +135,20 @@
 // };
 
 // export default AssignmentSubmissionForm;
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
-import { ButtonCustom } from '@/components/ui/button-custom';
-import { Separator } from '@/components/ui/separator';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
-import baseUrl from '@/config/Config';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { ButtonCustom } from "@/components/ui/button-custom";
+import { Separator } from "@/components/ui/separator";
+import { CheckCircle2, ArrowRight } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+import baseUrl from "@/config/Config";
 
 interface Question {
   question: string;
@@ -151,39 +157,26 @@ interface Question {
 }
 
 const MCQForm = ({ courseId }: { courseId: string }) => {
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      question: 'What is the capital of France?',
-      options: ['Paris', 'London', 'Berlin', 'Madrid'],
-      correctAnswer: 'Paris',
-    },
-    {
-      question: 'Which planet is known as the Red Planet?',
-      options: ['Earth', 'Mars', 'Jupiter', 'Saturn'],
-      correctAnswer: 'Mars',
-    },
-    {
-      question: 'What is 2 + 2?',
-      options: ['3', '4', '5', '6'],
-      correctAnswer: '4',
-    },
-  ]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
+  /* ================= OPTION SELECT ================= */
   const handleOptionSelect = (option: string) => {
     setSelectedOption(option);
   };
 
+  /* ================= NEXT ================= */
   const handleNextQuestion = () => {
-    setScore(prevScore =>
-      selectedOption === questions[currentQuestionIndex].correctAnswer
-        ? prevScore + 1
-        : prevScore
-    );
+    if (
+      selectedOption ===
+      questions[currentQuestionIndex].correctAnswer
+    ) {
+      setScore(prev => prev + 1);
+    }
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -193,177 +186,177 @@ const MCQForm = ({ courseId }: { courseId: string }) => {
     }
   };
 
+  /* ================= UPDATE SCORE ================= */
   useEffect(() => {
-    if (showResult) {
-      // console.log("Final Score:", score);
-      // console.log("Final Percentage:", (score / questions.length) * 100);
+    if (showResult && questions.length > 0) {
       updateTestScore((score / questions.length) * 100);
     }
-  }, [showResult, score]); // Runs only when `showResult` or `score` updates
+  }, [showResult]);
 
-
-
-  const handleRestart = () => {
-    setCurrentQuestionIndex(0);
-    setSelectedOption(null);
-    setScore(0);
-    setShowResult(false);
-  };
-
-  const updateTestScore = async (score: number) => {
+  const updateTestScore = async (percentage: number) => {
     try {
-      const response = await fetch(`${baseUrl}/update-progress`, {
+      await fetch(`${baseUrl}/update-progress`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userEmail: "sayanmyself50@gmail.com",
-          courseId: courseId,
+          userEmail: "takkhush6@gmail.com",
+          courseId,
           testId: courseId,
-          score: score,
+          score: percentage,
           totalMarks: 100,
         }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update progress");
-      }
-
-      // console.log("Progress updated:", data);
-      return data;
-    } catch (error) {
-      console.error("Error updating progress:", error);
+    } catch (err) {
+      console.error("Progress update failed", err);
     }
   };
 
-
-  useEffect(() => {
-
-    getQuestionsByCourse(courseId);
-
-  }, [])
-
-
-  const formatQuestionsData = (data: any[]) => {
-    return data.flatMap(test =>
+  /* ================= FORMAT API DATA ================= */
+  const formatQuestionsData = (tests: any[]) => {
+    return tests.flatMap(test =>
       test.questions.map((q: any) => ({
         question: q.questionText,
         options: q.options,
-        correctAnswer: q.options[Number(q.correctOptionIndex)], // Extract correct answer
+        correctAnswer: q.options[Number(q.correctOptionIndex)],
       }))
     );
   };
 
-  const getQuestionsByCourse = async (courseId: string) => {
+  /* ================= FETCH QUESTIONS ================= */
+  const getQuestionsByCourse = async () => {
     try {
-      const response = await fetch(`${baseUrl}/get-questions/${courseId}`);
+      setLoading(true);
+      const response = await fetch(
+        `${baseUrl}/get-questions/${courseId}`
+      );
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 404) {
-          toast({
-            title: "Error",
-            description: data.message || "Failed to fetch questions",
-          });
-        }
-        throw new Error(data.message || "Failed to fetch questions");
+        throw new Error(data.message);
       }
 
-      // console.log(data.tests);
-
-
-
-      const questions = formatQuestionsData(data.tests);
-
-      // console.log(questions);
-      setQuestions(questions);
-
-      return formatQuestionsData(data.tests); // Format data before returning
-    } catch (error) {
-      console.error("Error fetching questions:", error);
-      return [];
+      const formatted = formatQuestionsData(data.tests);
+      setQuestions(formatted);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Questions load failed",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    getQuestionsByCourse();
+  }, [courseId]);
 
-  if (showResult) {
+  /* ================= LOADING ================= */
+  if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Quiz Result</CardTitle>
-          <CardDescription>Your performance summary</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center">
-            <h3 className="text-2xl font-semibold mb-4">Your Score: {score}/{questions.length}</h3>
-            <ButtonCustom onClick={handleRestart} className="mt-4">
-              Restart Quiz
-            </ButtonCustom>
-          </div>
+        <CardContent className="py-10 text-center">
+          Loading questions...
         </CardContent>
       </Card>
     );
   }
 
-  const currentQuestion = questions && questions[currentQuestionIndex];
+  /* ================= NO QUESTIONS ================= */
+  if (questions.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          No questions available
+        </CardContent>
+      </Card>
+    );
+  }
 
+  /* ================= RESULT ================= */
+  if (showResult) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Quiz Result</CardTitle>
+          <CardDescription>Your performance</CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <h3 className="text-2xl font-semibold mb-4">
+            Score: {score}/{questions.length}
+          </h3>
+          <ButtonCustom
+            onClick={() => {
+              setScore(0);
+              setCurrentQuestionIndex(0);
+              setSelectedOption(null);
+              setShowResult(false);
+            }}
+          >
+            Restart Quiz
+          </ButtonCustom>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
+
+  /* ================= QUIZ UI ================= */
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Question {currentQuestionIndex + 1}</CardTitle>
-        <CardDescription>{currentQuestion?.question}</CardDescription>
+        <CardTitle>
+          Question {currentQuestionIndex + 1}
+        </CardTitle>
+        <CardDescription>
+          {currentQuestion.question}
+        </CardDescription>
       </CardHeader>
+
       <CardContent>
-        <form className="space-y-6">
-          <div className="space-y-3">
-            {currentQuestion?.options.map((option, index) => (
-              <div
-                key={index}
-                className={`flex items-center p-4 border rounded-lg cursor-pointer ${selectedOption === option
-                  ? 'bg-primary/10 border-primary'
-                  : 'bg-background hover:bg-muted/50'
-                  }`}
-                onClick={() => handleOptionSelect(option)}
-              >
-                <div className="flex-1">
-                  <p className="font-medium">{option}</p>
-                </div>
-                {selectedOption === option && (
-                  <CheckCircle2 className="h-5 w-5 text-primary" />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <Separator />
-
-          <div className="flex justify-end space-x-2">
-            <Link to="/student/assignments">
-              <ButtonCustom variant="outline" type="button">
-                Cancel
-              </ButtonCustom>
-            </Link>
-            <ButtonCustom
-              type="button"
-              onClick={handleNextQuestion}
-              disabled={!selectedOption}
-              className="min-w-[120px]"
+        <div className="space-y-4">
+          {currentQuestion.options.map((option, index) => (
+            <div
+              key={index}
+              onClick={() => handleOptionSelect(option)}
+              className={`flex items-center p-4 border rounded-lg cursor-pointer
+                ${
+                  selectedOption === option
+                    ? "bg-primary/10 border-primary"
+                    : "hover:bg-muted/50"
+                }`}
             >
-              {currentQuestionIndex < questions.length - 1 ? (
-                <>
-                  Next <ArrowRight className="h-4 w-4 ml-2" />
-                </>
-              ) : (
-                <>
-                  Finish <CheckCircle2 className="h-4 w-4 ml-2" />
-                </>
+              <span className="flex-1">{option}</span>
+              {selectedOption === option && (
+                <CheckCircle2 className="h-5 w-5 text-primary" />
               )}
-            </ButtonCustom>
-          </div>
-        </form>
+            </div>
+          ))}
+        </div>
+
+        <Separator className="my-6" />
+
+        <div className="flex justify-end gap-2">
+          <Link to="/student/assignments">
+            <ButtonCustom variant="outline">Cancel</ButtonCustom>
+          </Link>
+
+          <ButtonCustom
+            onClick={handleNextQuestion}
+            disabled={!selectedOption}
+          >
+            {currentQuestionIndex < questions.length - 1 ? (
+              <>
+                Next <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            ) : (
+              <>
+                Finish <CheckCircle2 className="ml-2 h-4 w-4" />
+              </>
+            )}
+          </ButtonCustom>
+        </div>
       </CardContent>
     </Card>
   );

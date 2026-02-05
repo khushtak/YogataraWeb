@@ -59,6 +59,16 @@ const AdminSidebar = () => {
       path: "/admin/subscribed-students",
     },
     {
+      title: "Categories",
+      icon: Users,
+      path: "/admin/categories",
+    },
+    {
+      title: "Create Students",
+      icon: Users,
+      path: "/admin/create-student",
+    },
+    {
       title: "Coupons",
       icon: Tag,
       path: "/admin/coupons",

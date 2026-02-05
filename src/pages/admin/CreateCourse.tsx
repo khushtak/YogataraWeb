@@ -92,6 +92,8 @@ const CreateCourse = () => {
 
   // Helper function to handle course detail changes
   const handleCourseDetailChange = (field, value) => {
+    console.log('oopopop',field,value);
+    
     setCourseDetails({
       ...courseDetails,
       [field]: value

@@ -1,19 +1,25 @@
-
-import React from 'react';
-import { Play, Download, FileText } from 'lucide-react';
-import { ButtonCustom } from '@/components/ui/button-custom';
-import { toast } from '@/components/ui/use-toast';
+import React from "react";
+import { Download, FileText } from "lucide-react";
+import { ButtonCustom } from "@/components/ui/button-custom";
+import { toast } from "@/components/ui/use-toast";
 
 interface StudentVideoPlayerProps {
   currentLesson: {
     title: string;
-    moduleTitle: string;
-    duration: string;
+    duration?: string;
+    videoUrl: string;
   } | null;
 }
 
 const StudentVideoPlayer = ({ currentLesson }: StudentVideoPlayerProps) => {
   if (!currentLesson) return null;
+
+  // Bunny video id nikaalne ke liye
+  const extractVideoId = (url: string) => {
+    return url.split("/").pop(); // last part = video id
+  };
+
+  const videoId = extractVideoId(currentLesson.videoUrl);
 
   const markAsComplete = () => {
     toast({
@@ -23,28 +29,39 @@ const StudentVideoPlayer = ({ currentLesson }: StudentVideoPlayerProps) => {
   };
 
   return (
-    <div id="video-player">
-      <div className="aspect-video bg-black/95 flex flex-col items-center justify-center">
-        <div className="text-center">
-          <Play className="h-16 w-16 text-primary/80 mx-auto mb-4 cursor-pointer hover:text-primary transition-colors" />
-          <h3 className="text-xl font-medium text-white">{currentLesson.title}</h3>
-          <p className="text-sm text-white/70 mt-2">From: {currentLesson.moduleTitle}</p>
-        </div>
+    <div className="border rounded-lg overflow-hidden">
+
+      {/* VIDEO AREA (iframe player same as working component) */}
+      <div className="w-full aspect-video bg-black">
+        <iframe
+          src={`https://iframe.mediadelivery.net/embed/409626/${videoId}?autoplay=false`}
+          loading="lazy"
+          className="w-full h-full"
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
       </div>
-      <div className="p-4 flex justify-between items-center bg-card border rounded-b-lg">
+
+      {/* INFO + ACTIONS (same design as before) */}
+      <div className="p-4 flex justify-between items-center bg-card border-t">
         <div>
           <h3 className="font-medium">{currentLesson.title}</h3>
-          <p className="text-sm text-muted-foreground">Duration: {currentLesson.duration}</p>
+          <p className="text-sm text-muted-foreground">
+            Duration: {currentLesson.duration || "N/A"}
+          </p>
         </div>
+
         <div className="flex gap-2">
           <ButtonCustom variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Resources
           </ButtonCustom>
+
           <ButtonCustom variant="outline" size="sm">
             <FileText className="h-4 w-4 mr-2" />
             Notes
           </ButtonCustom>
+
           <ButtonCustom size="sm" onClick={markAsComplete}>
             Mark as Complete
           </ButtonCustom>

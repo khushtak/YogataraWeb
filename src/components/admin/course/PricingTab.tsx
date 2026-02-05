@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { DollarSign, CalendarIcon } from 'lucide-react';
+import { DollarSign, CalendarIcon, IndianRupee } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -32,9 +32,10 @@ const PricingTab: React.FC<PricingTabProps> = ({
         <div className="grid gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="grid gap-2">
-              <Label htmlFor="regularPrice">Regular Price (USD) <span className="text-destructive">*</span></Label>
+              <Label htmlFor="regularPrice">Regular Price<span className="text-destructive">*</span></Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <IndianRupee  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                {/* <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> */}
                 <Input 
                   id="regularPrice"
                   type="number"
@@ -49,9 +50,10 @@ const PricingTab: React.FC<PricingTabProps> = ({
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="salePrice">Sale Price (USD)</Label>
+              <Label htmlFor="salePrice">Sale Price</Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <IndianRupee  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                {/* <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> */}
                 <Input 
                   id="salePrice"
                   type="number"

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { loadBookmarks, saveBookmarks } from '@/utils/bookmarkUtils';
 import baseUrl from '@/config/Config';
+import { getToken, getUser, saveToken } from '@/utils/auth';
 // import { coursesData } from '@/data/coursesData';
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -154,55 +155,78 @@ export function useCourse(id: string | undefined) {
     }
   };
 
-  const getUserProgress = async (userEmail: string, courseId: string) => {
-    try {
-      const response = await fetch(`${baseUrl}/user-progress/${userEmail}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+const getUserProgress = async (userEmail?: string, courseId?: string) => {
+  try {
+    // 🔒 agar email ya courseId hi nahi hai to aage mat badho
+    if (!userEmail || !courseId) {
+      setIsEnrolled(false);
+      return;
+    }
 
-      const data = await response.json();
+    const response = await fetch(`${baseUrl}/user-progress/${userEmail}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
+    if (!response.ok) {
+      // agar 404 ya error aaya to enrolled false
+      setIsEnrolled(false);
+      return;
+    }
 
-      // console.log("User progress fetched successfully:", data);
+    const data = await response.json();
 
-      // Check if the courseId exists in the courseDetails array
-      const matchedCourse = data.userProgress.courseDetails.find(
-        (course: { courseId: string }) => course.courseId === courseId
-      );
+    // safe access (kahin undefined na ho)
+    const courseDetails = data?.userProgress?.courseDetails;
 
-      if (matchedCourse) {
-        // console.log("Matched Course:", matchedCourse);
-        setIsEnrolled(true);
+    if (!Array.isArray(courseDetails)) {
+      setIsEnrolled(false);
+      return;
+    }
+
+    // check karo ki ye course user ne enroll kiya hai ya nahi
+    const matchedCourse = courseDetails.find(
+      (course: { courseId: string }) => course.courseId === courseId
+    );
+
+    if (matchedCourse) {
+      setIsEnrolled(true);
+    } else {
+      setIsEnrolled(false);
+    }
+
+  } catch (error) {
+    console.error("Error fetching user progress:", error);
+    // kisi bhi error me safe default = not enrolled
+    setIsEnrolled(false);
+  }
+};
+
+
+useEffect(() => {
+  const fetchData = async () => {
+    const fetchedCourse = await getCourseById();
+
+    if (fetchedCourse) {
+      setCoursesData(fetchedCourse);
+
+      const user = getUser(); // yaha call karo
+
+      // 🔒 agar user logged in hai tabhi email bhejo
+      if (user && user.email) {
+        getUserProgress(user.email, fetchedCourse.id);
       } else {
-        console.log("Course ID not found in user progress");
+        // user nahi hai to enrolled false rakho
+        setIsEnrolled(false);
       }
-
-    } catch (error) {
-      console.error("Error fetching user progress:", error);
     }
   };
 
+  fetchData();
+}, [id]);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-
-    const fetchData = async () => {
-      const fetchedCourse = await getCourseById();
-      if (fetchedCourse) {
-        // console.log("Fetched course:", fetchedCourse);
-        getUserProgress("sayanmyself50@gmail.com", fetchedCourse?.id);
-        setCoursesData(fetchedCourse); // Ensure state is updated
-      }
-    };
-
-    fetchData();
-  }, [id]); // Depend on `id`, so it re-fetches when `id` changes
 
   // Run renderCourse separately when coursesData updates
   useEffect(() => {
@@ -260,11 +284,147 @@ export function useCourse(id: string | undefined) {
 
 
 
-  const handleEnroll = () => {
-    // console.log("sayanmyself50@gmail.com", course?.id, course?.title, course?.sections?.length || 0);
+const handleEnroll = async () => {
+  try {
+    const user = getUser();
+    const token = getToken();
 
-    addProgress("sayanmyself50@gmail.com", course?.id, course?.title, course?.sections?.length || 0)
-  };
+    if (!user?.email) {
+      toast({
+        title: "Login required",
+        description: "Please login to continue",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // ================= LOAD RAZORPAY =================
+    const res = await loadRazorpayScript();
+    if (!res) {
+      toast({
+        title: "Razorpay SDK failed",
+        description: "Check your internet connection",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // ================= CREATE ORDER =================
+    const orderRes = await fetch(`${baseUrl}/create-order`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        amount: course.price, // ✅ BASE PRICE (GST backend me add ho raha)
+        currency: "INR",
+        courseId: course.id,
+      }),
+    });
+
+    const orderData = await orderRes.json();
+
+    if (!orderRes.ok) {
+      toast({
+        title: "Order failed",
+        description: orderData.message || "Something went wrong",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    /**
+     * backend response expected:
+     * {
+     *   orderId,
+     *   amount,        // totalAmount * 100 (paise)
+     *   currency,
+     *   gstAmount,
+     *   totalAmount
+     * }
+     */
+
+    // ================= RAZORPAY OPTIONS =================
+    const options = {
+      key: "rzp_live_RRFHHC0NDEGi6g",
+
+      amount: orderData.amount, // ✅ FINAL AMOUNT (GST included, paise)
+      currency: orderData.currency,
+      name: "Yogatara",
+      description: `${course.title} (incl. 18% GST)`,
+
+      order_id: orderData.orderId,
+
+      prefill: {
+        name: user.fullName,
+        email: user.email,
+        contact: user.phoneNumber || "",
+      },
+
+      notes: {
+        courseId: course.id,
+        baseAmount: course.price,
+        gstAmount: orderData.gstAmount,
+        totalAmount: orderData.totalAmount,
+      },
+
+      theme: {
+        color: "#BE7169",
+      },
+
+      handler: async function (response: any) {
+        // ================= VERIFY PAYMENT =================
+        const verifyRes = await fetch(`${baseUrl}/verify-payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" , Authorization: `Bearer ${token}`},
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          }),
+        });
+
+        const verifyData = await verifyRes.json();
+
+        if (!verifyRes.ok) {
+          toast({
+            title: "Payment verification failed",
+            description: verifyData.message || "Something went wrong",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // ================= ADD COURSE PROGRESS =================
+        await addProgress(
+          user.email,
+          course.id,
+          course.title,
+          course.sections?.length || 0
+        );
+
+        toast({
+          title: "Payment Successful 🎉",
+          description: `₹${orderData.totalAmount} (incl. 18% GST) paid successfully`,
+        });
+      },
+    };
+
+    const razorpay = new (window as any).Razorpay(options);
+    razorpay.open();
+  } catch (error) {
+    console.error("Payment error:", error);
+    toast({
+      title: "Payment failed",
+      description: "Something went wrong",
+      variant: "destructive",
+    });
+  }
+};
+
+
+
 
   const handleShare = () => {
     if (navigator.share) {

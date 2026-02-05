@@ -1,13 +1,26 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Hash, Plus, X } from 'lucide-react';
+import axios from 'axios';
+import baseUrl from '@/config/Config';
+
+interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+}
 
 interface BasicInfoTabProps {
   courseDetails: {
@@ -34,75 +47,114 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
   handleAddTag,
   handleRemoveTag
 }) => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  /* ================= GET CATEGORIES API ================= */
+const getCategories = async () => {
+  try {
+    setLoading(true);
+    const res = await axios.get(`${baseUrl}/categories`);
+
+    console.log('ssss', res.data);
+
+    // ✅ YAHI FIX HAI
+    setCategories(res.data.categories || []);
+  } catch (error) {
+    console.error('Error fetching categories', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  useEffect(() => {
+    getCategories();
+  }, []);
+
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="grid gap-6">
+
+          {/* Course Title */}
           <div className="grid gap-2">
-            <Label htmlFor="title">Course Title <span className="text-destructive">*</span></Label>
-            <Input 
-              id="title"
+            <Label>Course Title *</Label>
+            <Input
               value={courseDetails.title}
-              onChange={(e) => handleCourseDetailChange('title', e.target.value)}
-              placeholder="e.g., Vedic Astrology: Complete Chart Analysis & Predictions"
+              onChange={(e) =>
+                handleCourseDetailChange('title', e.target.value)
+              }
+              placeholder="Course title"
             />
           </div>
-          
+
+          {/* Short Description */}
           <div className="grid gap-2">
-            <Label htmlFor="shortDescription">Short Description <span className="text-destructive">*</span></Label>
-            <Textarea 
-              id="shortDescription"
+            <Label>Short Description *</Label>
+            <Textarea
               value={courseDetails.shortDescription}
-              onChange={(e) => handleCourseDetailChange('shortDescription', e.target.value)}
-              placeholder="Brief description for course cards and previews (150 characters max)"
-              maxLength={150}
+              onChange={(e) =>
+                handleCourseDetailChange('shortDescription', e.target.value)
+              }
               rows={2}
+              maxLength={150}
             />
           </div>
-          
+
+          {/* Full Description */}
           <div className="grid gap-2">
-            <Label htmlFor="longDescription">Full Description <span className="text-destructive">*</span></Label>
-            <Textarea 
-              id="longDescription"
+            <Label>Full Description *</Label>
+            <Textarea
               value={courseDetails.longDescription}
-              onChange={(e) => handleCourseDetailChange('longDescription', e.target.value)}
-              placeholder="Comprehensive course description with full details"
+              onChange={(e) =>
+                handleCourseDetailChange('longDescription', e.target.value)
+              }
               rows={6}
             />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* Category (API BASED) */}
             <div className="grid gap-2">
-              <Label htmlFor="category">Category <span className="text-destructive">*</span></Label>
+              <Label>Category *</Label>
               <Select
                 value={courseDetails.category}
-                onValueChange={(value) => handleCourseDetailChange('category', value)}
+                onValueChange={(value) =>
+                  handleCourseDetailChange('category', value)
+                }
               >
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select a category" />
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={loading ? 'Loading...' : 'Select category'}
+                  />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vedic-astrology">Vedic Astrology</SelectItem>
-                  <SelectItem value="numerology">Numerology</SelectItem>
-                  <SelectItem value="tarot">Tarot Reading</SelectItem>
-                  <SelectItem value="palmistry">Palmistry</SelectItem>
-                  <SelectItem value="vaastu">Vaastu Shastra</SelectItem>
-                  <SelectItem value="yoga">Yoga & Meditation</SelectItem>
-                  <SelectItem value="ayurveda">Ayurveda</SelectItem>
+
+                <SelectContent className="z-50 bg-background border shadow-lg">
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.slug} value={cat.slug}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
+            {/* Difficulty Level */}
             <div className="grid gap-2">
-              <Label htmlFor="level">Difficulty Level <span className="text-destructive">*</span></Label>
+              <Label>Difficulty Level *</Label>
               <Select
                 value={courseDetails.level}
-                onValueChange={(value) => handleCourseDetailChange('level', value)}
+                onValueChange={(v) =>
+                  handleCourseDetailChange('level', v)
+                }
               >
-                <SelectTrigger id="level">
+                <SelectTrigger>
                   <SelectValue placeholder="Select difficulty level" />
                 </SelectTrigger>
-                <SelectContent>
+
+                <SelectContent className="z-50 bg-background border shadow-lg">
                   <SelectItem value="beginner">Beginner</SelectItem>
                   <SelectItem value="intermediate">Intermediate</SelectItem>
                   <SelectItem value="advanced">Advanced</SelectItem>
@@ -110,17 +162,21 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            
+
+            {/* Language */}
             <div className="grid gap-2">
-              <Label htmlFor="language">Language <span className="text-destructive">*</span></Label>
+              <Label>Language *</Label>
               <Select
                 value={courseDetails.language}
-                onValueChange={(value) => handleCourseDetailChange('language', value)}
+                onValueChange={(v) =>
+                  handleCourseDetailChange('language', v)
+                }
               >
-                <SelectTrigger id="language">
+                <SelectTrigger>
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
-                <SelectContent>
+
+                <SelectContent className="z-50 bg-background border shadow-lg">
                   <SelectItem value="english">English</SelectItem>
                   <SelectItem value="hindi">Hindi</SelectItem>
                   <SelectItem value="sanskrit">Sanskrit</SelectItem>
@@ -131,15 +187,16 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            
+
+            {/* Tags */}
             <div className="grid gap-2">
               <Label>Tags</Label>
+
               <div className="flex gap-2">
-                <Input 
-                  value={newTag} 
+                <Input
+                  value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="Add a tag" 
-                  className="flex-1"
+                  placeholder="Add tag"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -151,26 +208,24 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
+
               <div className="flex flex-wrap gap-2 mt-2">
-                {courseDetails.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
-                    <Hash className="h-3 w-3" />
+                {courseDetails.tags.map((tag, i) => (
+                  <Badge key={i} variant="secondary">
+                    <Hash className="h-3 w-3 mr-1" />
                     {tag}
                     <Button
-                      variant="ghost"
                       size="sm"
-                      className="h-4 w-4 p-0 ml-1"
+                      variant="ghost"
                       onClick={() => handleRemoveTag(tag)}
                     >
                       <X className="h-3 w-3" />
                     </Button>
                   </Badge>
                 ))}
-                {courseDetails.tags.length === 0 && (
-                  <span className="text-sm text-muted-foreground">No tags added yet</span>
-                )}
               </div>
             </div>
+
           </div>
         </div>
       </CardContent>

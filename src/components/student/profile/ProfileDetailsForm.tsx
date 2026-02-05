@@ -12,6 +12,8 @@ const ProfileDetailsForm = ({
   handleSaveProfile,
   setIsEditing,
 }: any) => {
+  console.log('dddddd',userData);
+  
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
@@ -40,12 +42,12 @@ const ProfileDetailsForm = ({
         {/* Phone */}
         <div className="space-y-2">
           <Label>Phone</Label>
-          <Input
-            name="phone"
-            value={userData.phoneNumber}
-            onChange={handleInputChange}
-            disabled={!isEditing}
-          />
+           <Input
+    name="phoneNumber"
+    value={userData.phoneNumber || ""}
+    onChange={handleInputChange}
+    disabled={!isEditing}
+  />
         </div>
 
         {/* Location */}

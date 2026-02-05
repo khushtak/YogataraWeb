@@ -43,6 +43,10 @@ import StudentProfile from "./pages/student/StudentProfile";
 import StudentCalendar from "./pages/student/StudentCalendar";
 import StudentCourseDetail from "./pages/student/StudentCourseDetail";
 import StudentAssignmentDetail from "./pages/student/StudentAssignmentDetail";
+import CreateStudentPage from "./components/admin/AdminCreateStudent";
+import StudentsPage from "./components/admin/AdminStudent";
+import CategoryList from "./components/admin/ViewCategory";
+import AddCategory from "./components/admin/AddCategory";
 
 // 🔥 QUERY CLIENT
 const queryClient = new QueryClient({
@@ -170,7 +174,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/student/course/:courseId"
+                path="/student/course/:id"
                 element={
                   <ProtectedRoute allowedRole="student">
                     <StudentCourseDetail />
@@ -228,10 +232,42 @@ const App = () => {
                 }
               />
               <Route
+                path="/admin/create-student"
+                element={
+                  <ProtectedRoute allowedRole="admin">
+                    <CreateStudentPage />
+                  </ProtectedRoute>
+                }
+              />
+               {/* <Route
+                path="/admin/student"
+                element={
+                  <ProtectedRoute allowedRole="admin">
+                    <StudentsPage />
+                  </ProtectedRoute>
+                }
+              /> */}
+              <Route
                 path="/admin/courses"
                 element={
                   <ProtectedRoute allowedRole="admin">
                     <ManageCourses />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/categories"
+                element={
+                  <ProtectedRoute allowedRole="admin">
+                    <CategoryList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/add-category"
+                element={
+                  <ProtectedRoute allowedRole="admin">
+                    <AddCategory />
                   </ProtectedRoute>
                 }
               />

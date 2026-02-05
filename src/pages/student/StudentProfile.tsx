@@ -8,7 +8,6 @@ import { getUser, saveUser, getToken } from "@/utils/auth";
 import { toast } from "@/components/ui/use-toast";
 import baseUrl from "@/config/Config";
 
-
 const StudentProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -19,22 +18,59 @@ const StudentProfile = () => {
     location: "",
   });
 
-  // 🔥 Load user from session
+  // 🔥 VIEW PROFILE API SE DATA LANA
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const storedUser = getUser();
-    if (storedUser) {
-      setUserData({
-        fullName: storedUser.fullName || "",
-        email: storedUser.email || "",
-        phoneNumber: storedUser.phoneNumber || "",
-        location: storedUser.location || "",
-      });
-    }
+    const fetchProfile = async () => {
+      try {
+        const token = getToken();
+        const storedUser = getUser();
+
+        if (!storedUser?.email) return;
+
+        const res = await fetch(
+          `${baseUrl}/view-profile/${storedUser.email}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+        const {profile}=data
+        if (!res.ok) throw new Error(data.message);
+
+        // backend se aaya hua fresh data set karo
+        setUserData({
+          fullName: profile.fullName || "",
+          email: profile.email || "",
+          phoneNumber: profile.phoneNumber || "",
+          location: profile.location || "",
+        });
+
+        // session bhi update kar do taaki har jagah same data rahe
+        saveUser({
+          ...storedUser,
+          fullName: profile.fullName,
+          phoneNumber: profile.phoneNumber,
+          location: profile.location,
+        });
+
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to load profile",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchProfile();
   }, []);
 
-  // ✏️ Input handler
+  // ✏️ input change
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -45,12 +81,12 @@ const StudentProfile = () => {
     }));
   };
 
-  // 🚀 EDIT PROFILE (USERID BASED)
+  // 🚀 EDIT PROFILE (ID BASED)
   const handleSaveProfile = async () => {
     try {
       const token = getToken();
       const user = getUser();
-console.log("USER DATA TO SAVE 👉", user);
+
       if (!user || !user.id) throw new Error("User not logged in");
 
       const response = await fetch(`${baseUrl}/edit-profile/${user.id}`, {
@@ -67,12 +103,9 @@ console.log("USER DATA TO SAVE 👉", user);
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Update failed");
 
-      if (!response.ok) {
-        throw new Error(data.message || "Update failed");
-      }
-
-      // 🔥 Update session storage
+      // session update
       saveUser({
         ...getUser(),
         fullName: data.user.fullName,

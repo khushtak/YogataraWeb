@@ -1,158 +1,194 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
-import { ButtonCustom } from '@/components/ui/button-custom';
-import { Link } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import StudentLayout from "@/components/student/StudentLayout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+import { ButtonCustom } from "@/components/ui/button-custom";
+import { toast } from "@/components/ui/use-toast";
 
-import StudentLayout from '@/components/student/StudentLayout';
-import { getStudentCourseById } from '@/utils/dataUtils';
-import { StudentCourse, CourseModule, Lesson, Module } from '@/utils/data/types';
+import StudentVideoPlayer from "@/components/student/course/StudentVideoPlayer";
+import CourseDetailHeader from "@/components/student/course/CourseDetailHeader";
+import CourseModules from "@/components/student/course/CourseModules";
+import CourseOverview from "@/components/student/course/CourseOverview";
+import CourseResources from "@/components/student/course/CourseResources";
+import CourseDiscussions from "@/components/student/course/CourseDiscussions";
+import CourseProgressSidebar from "@/components/student/course/CourseProgressSidebar";
+import baseUrl from "@/config/Config";
 
-// Import refactored components
-import StudentVideoPlayer from '@/components/student/course/StudentVideoPlayer';
-import CourseDetailHeader from '@/components/student/course/CourseDetailHeader';
-import CourseModules from '@/components/student/course/CourseModules';
-import CourseOverview from '@/components/student/course/CourseOverview';
-import CourseResources from '@/components/student/course/CourseResources';
-import CourseDiscussions from '@/components/student/course/CourseDiscussions';
-import CourseProgressSidebar from '@/components/student/course/CourseProgressSidebar';
+// ================= TYPES =================
+interface Lesson {
+  id: string;
+  title: string;
+  duration: string;
+  videoUrl: string;
+  description?: string;
+  completed?: boolean;
+}
 
-// Extended type for courses with modules
-interface ExtendedStudentCourse extends StudentCourse {
+interface Module {
+  id: string;
+  title: string;
+  items: Lesson[];
+}
+
+interface Course {
+  courseName: string;
+  courseImage: string;
+  courseDescription: string;
+  courseShortDescription: string;
+  courseDuration: string;
+  courseLevel: string;
+  courseLanguage: string;
   modules: Module[];
 }
 
-// Type for the current lesson
-interface CurrentLessonType extends Lesson {
+interface CurrentLesson extends Lesson {
   moduleTitle: string;
 }
 
+// ================= COMPONENT =================
 const StudentCourseDetail = () => {
-  const { courseId } = useParams<{ courseId: string }>();
-  const [course, setCourse] = useState<ExtendedStudentCourse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentLesson, setCurrentLesson] = useState<CurrentLessonType | null>(null);
+  const { id } = useParams<{ id: string }>();
 
-  /* =====================================================
-     🔒 ADDED ONLY: PAGE PRIVACY (RIGHT CLICK + KEYS BLOCK)
-     ===================================================== */
+  const [course, setCourse] = useState<Course | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentLesson, setCurrentLesson] =
+    useState<CurrentLesson | null>(null);
+
+  // 🔒 PAGE PROTECTION (UNCHANGED)
   useEffect(() => {
-    const disableRightClick = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-
+    const disableRightClick = (e: MouseEvent) => e.preventDefault();
     const disableKeys = (e: KeyboardEvent) => {
       if (
-        e.key === 'F12' ||
-        e.key === 'prt sc' ||
+        e.key === "F12" ||
         e.ctrlKey ||
-        e.metaKey
-      ) {
-        e.preventDefault();
-      }
-
-      if (
-        (e.ctrlKey && ['c', 'v', 'x', 'u', 's', 'p'].includes(e.key.toLowerCase())) ||
-        (e.ctrlKey && e.shiftKey && ['i', 'j'].includes(e.key.toLowerCase()))
+        e.metaKey ||
+        (e.ctrlKey && e.shiftKey)
       ) {
         e.preventDefault();
       }
     };
 
-    document.addEventListener('contextmenu', disableRightClick);
-    document.addEventListener('keydown', disableKeys);
+    document.addEventListener("contextmenu", disableRightClick);
+    document.addEventListener("keydown", disableKeys);
 
     return () => {
-      document.removeEventListener('contextmenu', disableRightClick);
-      document.removeEventListener('keydown', disableKeys);
+      document.removeEventListener("contextmenu", disableRightClick);
+      document.removeEventListener("keydown", disableKeys);
     };
   }, []);
-  /* ================= END ADDED CODE =================== */
 
+  // ================= FETCH COURSE =================
   useEffect(() => {
-    window.scrollTo(0, 0);
-    
-    // Fetch course data
-    if (courseId) {
-      const courseData = getStudentCourseById(courseId);
-      if (courseData && 'modules' in courseData) {
-        setCourse(courseData as ExtendedStudentCourse);
-        
-        // Find the first incomplete lesson to set as current
-        if (courseData.modules) {
-          let foundCurrentLesson = false;
-          
-          for (const module of courseData.modules) {
-            for (const lesson of module.lessons) {
-              if (!lesson.completed && !foundCurrentLesson) {
-                setCurrentLesson({
-                  ...lesson,
-                  moduleTitle: module.title,
-                  completed: lesson.completed || false
-                });
-                foundCurrentLesson = true;
-                break;
-              }
-            }
-            if (foundCurrentLesson) break;
+    if (!id) {
+      console.error("❌ COURSE ID NOT FOUND IN URL");
+      setLoading(false);
+      return;
+    }
+
+    const fetchCourse = async () => {
+      try {
+        setLoading(true);
+
+        const res = await fetch(`${baseUrl}/get-course/${id}`);
+        const data = await res.json();
+
+        console.log("API DATA 👉", data);
+
+        // ✅ YAHI GALTI THI
+        if (!data || !data._id) {
+          // setCourse(null);
+          setLoading(false);
+          return;
+        }
+
+        const formattedCourse: Course = {
+          ...data,
+          modules: data.videoes || [],
+        };
+        console.log("API DATA 👉", formattedCourse);
+
+        setCourse(formattedCourse);
+
+        if (formattedCourse.modules.length > 0) {
+          const firstModule = formattedCourse.modules[0];
+          const firstLesson = firstModule.items?.[0];
+
+          if (firstLesson) {
+            setCurrentLesson({
+              ...firstLesson,
+              moduleTitle: firstModule.title || "",
+            });
           }
         }
-      } else {
-        setCourse(null);
-      }
-      
-      setIsLoading(false);
-    }
-  }, [courseId]);
 
-  const startLesson = (module: string, lesson: Lesson) => {
-    setCurrentLesson({
-      ...lesson,
-      moduleTitle: module
-    });
-    
+        setLoading(false);
+      } catch (err) {
+        console.error("FETCH ERROR ❌", err);
+        setLoading(false);
+      }
+    };
+
+    fetchCourse();
+  }, [id]);
+
+  // ================= HANDLERS =================
+  const startLesson = (moduleTitle: string, lesson: Lesson) => {
+    setCurrentLesson({ ...lesson, moduleTitle });
+
     toast({
-      title: "Lesson started",
-      description: `You're now viewing ${lesson.title}`,
+      title: "Lesson Started",
+      description: lesson.title,
     });
-    
-    document.getElementById('video-player')?.scrollIntoView({ behavior: 'smooth' });
+
+    document
+      .getElementById("video-player")
+      ?.scrollIntoView({ behavior: "smooth" });
   };
 
   const scrollToVideoPlayer = () => {
-    document.getElementById('video-player')?.scrollIntoView({ behavior: 'smooth' });
+    document
+      .getElementById("video-player")
+      ?.scrollIntoView({ behavior: "smooth" });
   };
 
-  if (isLoading) {
+  // ================= UI STATES =================
+  if (loading) {
+        console.log('eeee',course);
+
     return (
       <StudentLayout>
-        <div className="h-full flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="h-full flex items-center justify-center">
+          <div className="animate-spin h-12 w-12 border-t-2 border-b-2 border-primary rounded-full"></div>
         </div>
       </StudentLayout>
     );
   }
 
   if (!course) {
+    
     return (
       <StudentLayout>
         <div className="flex flex-col items-center justify-center p-8">
           <AlertCircle className="h-16 w-16 text-destructive mb-4" />
           <h1 className="text-2xl font-bold mb-2">Course Not Found</h1>
-          <p className="text-muted-foreground mb-6">
-            The course you're looking for doesn't exist or has been removed.
-          </p>
           <Link to="/student/courses">
-            <ButtonCustom>Back to My Courses</ButtonCustom>
+            <ButtonCustom>Back to Courses</ButtonCustom>
           </Link>
         </div>
       </StudentLayout>
     );
   }
+    console.log('eeee2',course);
 
+  // ================= MAIN RENDER =================
   return (
     <StudentLayout>
       <div className="space-y-8">
@@ -166,52 +202,48 @@ const StudentCourseDetail = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <Tabs defaultValue="content" className="space-y-6">
+            <Tabs defaultValue="content">
               <TabsList>
                 <TabsTrigger value="content">Course Content</TabsTrigger>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="resources">Resources</TabsTrigger>
                 <TabsTrigger value="discussions">Discussions</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="content">
                 <Card>
                   <CardHeader>
                     <CardTitle>Course Curriculum</CardTitle>
-                    <CardDescription>
-                      Track your progress through the course content
-                    </CardDescription>
+                    <CardDescription>Track your progress</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <CourseModules 
-                      modules={course.modules} 
-                      onStartLesson={startLesson} 
+                    <CourseModules
+                      modules={course.modules}
+                      onStartLesson={startLesson}
                     />
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="overview">
                 <CourseOverview course={course} />
               </TabsContent>
-              
+
               <TabsContent value="resources">
                 <CourseResources modules={course.modules} />
               </TabsContent>
-              
+
               <TabsContent value="discussions">
                 <CourseDiscussions />
               </TabsContent>
             </Tabs>
           </div>
-          
-          <div>
-            <CourseProgressSidebar 
-              course={course} 
-              currentLesson={currentLesson} 
-              onContinueLearning={scrollToVideoPlayer} 
-            />
-          </div>
+
+          <CourseProgressSidebar
+            course={course}
+            currentLesson={currentLesson}
+            onContinueLearning={scrollToVideoPlayer}
+          />
         </div>
       </div>
     </StudentLayout>

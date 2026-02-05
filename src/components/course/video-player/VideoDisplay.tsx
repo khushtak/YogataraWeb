@@ -19,6 +19,7 @@ const VideoDisplay: React.FC<VideoDisplayProps> = ({
 }) => {
   const { isPlaying, togglePlay, setShowControls } = useVideoPlayer();
   const navigate = useNavigate();
+const [showEnrollMsg, setShowEnrollMsg] = useState(false);
 
   const [user, setUser] = useState<any>(null);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -100,7 +101,7 @@ const VideoDisplay: React.FC<VideoDisplayProps> = ({
         onMouseLeave={() => isPlaying && setShowControls(false)}
       >
         <div className="flex items-center justify-center h-full">
-          {currentVideo.isPreview || isEnrolled ? (
+          {currentVideo.isPreview || isEnrolled ===true ? (
             <div className="relative w-full h-full">
               {!isPlaying && (
                 <div className="relative w-full h-full">
@@ -112,14 +113,30 @@ const VideoDisplay: React.FC<VideoDisplayProps> = ({
                     className="w-full h-full object-cover opacity-20"
                   />
 
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <button
-                      onClick={handlePlayClick}
-                      className="bg-black/60 rounded-full p-4 hover:bg-black/80"
-                    >
-                      <Play className="h-8 w-8 text-white" />
-                    </button>
-                  </div>
+                 <div className="absolute inset-0 flex items-center justify-center">
+  <button
+    onClick={() => {
+      if (!isEnrolled) {
+        // enrolled nahi hai to sirf popup/message dikhao
+        setShowEnrollMsg(true);
+
+        // 1.5 sec baad message hata do
+        // setTimeout(() => {
+        //   setShowEnrollMsg(false);
+        // });
+
+        return; // yahin stop, video play nahi hogi
+      }
+
+      // agar enrolled hai to normal play
+      handlePlayClick();
+    }}
+    className="bg-black/60 rounded-full p-4 hover:bg-black/80"
+  >
+    <Play className="h-8 w-8 text-white" />
+  </button>
+</div>
+
                 </div>
               )}
 
@@ -146,6 +163,28 @@ const VideoDisplay: React.FC<VideoDisplayProps> = ({
           )}
         </div>
       </div>
+{showEnrollMsg && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div className="bg-white rounded-xl w-[90%] max-w-md p-6 text-center shadow-xl">
+      <h2 className="text-xl font-bold mb-3">
+        Enrollment Required
+      </h2>
+
+      <p className="text-gray-600 mb-6">
+        First enroll the course to watch this video
+      </p>
+
+      <ButtonCustom
+        className="w-full"
+        size="lg"
+        onClick={() => setShowEnrollMsg(false)}
+      >
+        OK
+      </ButtonCustom>
+    </div>
+  </div>
+)}
+
 
       {/* ================= LOGIN POPUP ================= */}
       {showLoginPopup && (

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUpDown, DollarSign, Clock, Users } from 'lucide-react';
+import { ArrowUpDown, DollarSign, Clock, Users, IndianRupee } from 'lucide-react';
 import CourseActionsMenu from './CourseActionsMenu';
 
 interface Course {
@@ -47,7 +47,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses }) => {
             </TableHead>
             <TableHead>
               <div className="flex items-center">
-                <DollarSign className="mr-2 h-4 w-4" />
+                {/* <IndianRupee  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> */}
                 Price
               </div>
             </TableHead>
@@ -66,7 +66,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses }) => {
                 </Badge>
               </TableCell>
               <TableCell>{course.students.toLocaleString()}</TableCell>
-              <TableCell>${course.price.toFixed(2)}</TableCell>
+              <TableCell>₹{course.price.toFixed(2)}</TableCell>
               <TableCell>{course.lastUpdated}</TableCell>
               <TableCell>
                 <Badge variant={course.status === 'Published' ? 'default' : 'secondary'}>

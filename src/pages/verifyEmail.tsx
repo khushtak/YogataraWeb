@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import baseUrl from "@/config/Config";
 
 const VerifyEmail = () => {
   const { token } = useParams();
@@ -10,7 +11,7 @@ const VerifyEmail = () => {
     const verifyEmail = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/verify-email/${token}`
+          `${baseUrl}/verify-email/${token}`
         );
 
         const data = await res.json();

@@ -94,7 +94,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
               {price === 0 ? (
                 <span className="text-emerald-600">Free</span>
               ) : (
-                <span>${price.toFixed(2)}</span>
+                <span>₹{price.toFixed(2)}</span>
               )}
             </p>
           </div>

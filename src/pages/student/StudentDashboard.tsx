@@ -60,7 +60,7 @@ const StudentDashboard = () => {
   /* ================= API ================= */
   const getCourseById = async (id: string) => {
     try {
-      const res = await fetch(`${baseUrl}/get-courses/${id}`);
+      const res = await fetch(`${baseUrl}/get-course/${id}`);
       if (!res.ok) return null;
       return await res.json();
     } catch {
