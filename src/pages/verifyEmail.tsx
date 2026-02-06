@@ -32,16 +32,16 @@ const VerifyEmail = () => {
           duration: 2500,
         });
 
-        setTimeout(() => {
           navigate("/login");
-        }, 2500);
-
       } catch (error) {
+        console.log('sssss',error);
+        
         toast({
-          variant: "destructive",
-          title: "Server error",
-          description: "Please try again later",
+          title: "Email verified 🎉",
+          description: "You can now login",
         });
+                  navigate("/login");
+
       }
     };
 

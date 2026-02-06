@@ -62,7 +62,7 @@ console.log("op",userData)
         {/* LOGO */}
         <Link to="/" className="flex items-center">
           <GiShipWheel className="h-8 w-8 text-primary mr-2" />
-          <span className="text-xl font-semibold">Yogtara</span>
+          <span className="text-xl font-semibold">Yogatara</span>
         </Link>
 
         {/* DESKTOP NAV */}

@@ -19,7 +19,7 @@ const Footer = () => {
             <Link to="/" className="flex items-center mb-4">
               <GiShipWheel className="h-8 w-8 text-primary mr-2" />
               <span className="text-xl font-semibold tracking-tight">
-                Yogtara
+                Yogatara
               </span>
             </Link>
             <p className="text-muted-foreground mb-6 max-w-sm">

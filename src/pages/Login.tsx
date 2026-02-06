@@ -74,13 +74,14 @@ const Login = () => {
 
       toast({
         title: "Login successful",
-        description: "Welcome back to Yogtara 🌿",
+        description: "Welcome back to Yogatara 🌿",
         duration: 1500,
       })
 
       setFormData(initialFormData)
 
       setTimeout(() => {
+        data.user.role === "admin" ? navigate("/admin") : navigate("/student")
         navigate("/student")
       }, 1500)
 
@@ -114,7 +115,7 @@ const Login = () => {
           <div className="hidden md:flex flex-col justify-center px-10 bg-primary text-primary-foreground">
             <h2 className="text-3xl font-bold mb-4">Welcome Back 🌿</h2>
             <p className="opacity-90">
-              Continue your journey towards mindfulness and wellness with Yogtara.
+              Continue your journey towards mindfulness and wellness with Yogatara.
             </p>
 
             <ul className="mt-8 space-y-2 text-sm opacity-90">

@@ -104,7 +104,7 @@ const Register = () => {
         >
           {/* LEFT */}
           <div className="hidden md:flex flex-col justify-center px-10 bg-primary text-primary-foreground">
-            <h2 className="text-3xl font-bold mb-4">Join Yogtara 🌿</h2>
+            <h2 className="text-3xl font-bold mb-4">Join Yogatara 🌿</h2>
             <p className="opacity-90">
               Create your account and start your journey towards mindfulness and wellness.
             </p>

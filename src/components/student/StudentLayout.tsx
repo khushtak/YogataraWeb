@@ -78,7 +78,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children }) => {
       <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 flex-col bg-card border-r z-30">
         <div className="p-4 flex items-center">
           <GiShipWheel className="h-6 w-6 text-primary mr-2" />
-          <span className="text-lg font-semibold">Yogtara</span>
+          <span className="text-lg font-semibold">Yogatara</span>
         </div>
 
         <Separator />
@@ -122,7 +122,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children }) => {
           />
           <aside className="absolute left-0 top-0 h-full w-64 bg-card border-r p-4">
             <div className="flex items-center justify-between mb-4">
-              <span className="font-semibold text-lg">Yogtara</span>
+              <span className="font-semibold text-lg">Yogatara</span>
               <X onClick={() => setIsDrawerOpen(false)} />
             </div>
 
