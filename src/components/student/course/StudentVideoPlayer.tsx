@@ -20,6 +20,7 @@ const StudentVideoPlayer = ({ currentLesson }: StudentVideoPlayerProps) => {
   };
 
   const videoId = extractVideoId(currentLesson.videoUrl);
+console.log('dsadasda',currentLesson.videoUrl);
 
   const markAsComplete = () => {
     toast({
@@ -34,7 +35,7 @@ const StudentVideoPlayer = ({ currentLesson }: StudentVideoPlayerProps) => {
       {/* VIDEO AREA (iframe player same as working component) */}
       <div className="w-full aspect-video bg-black">
         <iframe
-          src={`https://iframe.mediadelivery.net/embed/409626/${videoId}?autoplay=false`}
+          src={currentLesson.videoUrl}
           loading="lazy"
           className="w-full h-full"
           allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"

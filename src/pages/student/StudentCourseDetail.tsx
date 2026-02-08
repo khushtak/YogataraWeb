@@ -205,9 +205,9 @@ const StudentCourseDetail = () => {
             <Tabs defaultValue="content">
               <TabsList>
                 <TabsTrigger value="content">Course Content</TabsTrigger>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
+                {/* <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="resources">Resources</TabsTrigger>
-                <TabsTrigger value="discussions">Discussions</TabsTrigger>
+                <TabsTrigger value="discussions">Discussions</TabsTrigger> */}
               </TabsList>
 
               <TabsContent value="content">

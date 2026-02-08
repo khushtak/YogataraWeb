@@ -139,7 +139,6 @@ const [showEnrollMsg, setShowEnrollMsg] = useState(false);
 
                 </div>
               )}
-
               {isPlaying && (
                 <iframe
                   src={`https://iframe.mediadelivery.net/embed/409626/${extractVideoId(

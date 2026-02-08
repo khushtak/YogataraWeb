@@ -27,7 +27,7 @@ const Navbar = () => {
   const location = useLocation();
   const isLoggedIn = !!localStorage.getItem("token");
   const userData=getUser()
-console.log("op",userData)
+// console.log("op",userData)
   useEffect(() => {
     const root = document.documentElement;
     theme === "dark"

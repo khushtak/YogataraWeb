@@ -4,7 +4,7 @@ import App from './App.tsx'
 import './index.css'
 
 // Log the initial render attempt
-console.log("Starting application render");
+// console.log("Starting application render");
 
 // Create a function to handle rendering errors at the root level
 const renderApp = () => {
@@ -18,9 +18,9 @@ const renderApp = () => {
     const root = createRoot(rootElement);
     root.render(<App />);
     
-    console.log("App successfully mounted"); // Debug message
+    // console.log("App successfully mounted"); // Debug message
   } catch (error) {
-    console.error("Failed to render the application:", error);
+    // console.error("Failed to render the application:", error);
     
     // Render a minimal error message if the app fails to load
     const rootElement = document.getElementById("root");
