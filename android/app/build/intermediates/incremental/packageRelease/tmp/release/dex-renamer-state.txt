@@ -1,4 +1,0 @@
-#Fri Jan 23 13:45:32 IST 2026
-base.0=D\:\\teachify-dimension-lms-frontend-main\\android\\app\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
-path.0=classes.dex
-renamed.0=classes.dex
