@@ -38,6 +38,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   handleDownloadResources = () => { }
 }) => {
   const videoPlayerState = useVideoPlayerState();
+// console.log('3333',course);
 
   return (
     <VideoPlayerProvider value={videoPlayerState}>

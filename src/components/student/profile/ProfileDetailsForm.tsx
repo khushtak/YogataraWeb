@@ -12,7 +12,7 @@ const ProfileDetailsForm = ({
   handleSaveProfile,
   setIsEditing,
 }: any) => {
-  console.log('dddddd',userData);
+  // console.log('dddddd',userData);
   
   return (
     <div className="space-y-6">

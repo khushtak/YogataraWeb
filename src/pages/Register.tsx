@@ -52,7 +52,7 @@ const Register = () => {
       });
 
       const data = await res.json();
-      console.log("REGISTER RESPONSE 👉", data);
+      // console.log("REGISTER RESPONSE 👉", data);
 
       /* ❌ ERROR CASE */
       if (!res.ok) {

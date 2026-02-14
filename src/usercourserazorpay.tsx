@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { loadBookmarks, saveBookmarks } from '@/utils/bookmarkUtils';
 import baseUrl from '@/config/Config';
-// import { coursesData } from '@/data/coursesData';
+
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
     const script = document.createElement("script");
@@ -21,56 +20,16 @@ export function useCourse(id: string | undefined) {
   const [currentVideo, setCurrentVideo] = useState<any>(null);
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
-  const [bookmarkedData, setBookmarkedData] = useState<Array<{ id: string, title: string }>>([]);
-
+  const [bookmarkedData, setBookmarkedData] = useState<Array<{ id: string; title: string }>>([]);
   const [coursesData, setCoursesData] = useState<any>({});
+  const [pdfUrls, setPdfUrls] = useState<string[]>([]);
 
-  const [pdfUrls, setPdfUrls] = useState([])
-
-  const handleDownloadResources = () => {
-    if (pdfUrls.length > 0) {
-      pdfUrls.forEach(pdfUrl => {
-        fetch(pdfUrl)
-          .then(response => response.blob()) // Convert to blob
-          .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = pdfUrl.split('/').pop(); // Extract filename
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url); // Cleanup URL object
-          })
-          .catch(error => console.error("Error downloading PDF:", error));
-      });
-    }
-  };
-
-
+  /* ================= FETCH COURSE ================= */
   const getCourseById = async () => {
     try {
       const response = await fetch(`${baseUrl}/get-course/${id}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch course");
-      }
-
       const course = await response.json();
 
-      // console.log("Fetched course:", course);
-
-      const pdfUrls = course?.videoes?.flatMap(video =>
-        video.items?.filter(item => item.type === "pdf" && item.pdfUrl).map(item => item.pdfUrl)
-      ) || [];
-
-      // console.log("Extracted PDF URLs:", pdfUrls);
-
-      setPdfUrls(pdfUrls);
-
-
-      // Transforming the response to match your expected structure
       const formattedCourse = {
         id: course.courseId,
         title: course.courseName,
@@ -79,14 +38,14 @@ export function useCourse(id: string | undefined) {
         level: course.courseLevel,
         price: Number(course.coursePrice),
         category: course.courseCategory,
-        instructor: course.courseInStructure[0]?.name || "Unknown",
-        instructorTitle: course.courseInStructure[0]?.title || "Instructor",
-        instructorBio: course.courseInStructure[0]?.bio || "",
-        instructorImage: course.courseInStructure[0]?.image || "",
+        instructor: course.courseInStructure?.[0]?.name || "Unknown",
+        instructorTitle: course.courseInStructure?.[0]?.title || "",
+        instructorBio: course.courseInStructure?.[0]?.bio || "",
+        instructorImage: course.courseInStructure?.[0]?.image || "",
         thumbnail: course.courseImage,
-        sections: course.videoes.map((videoSection) => ({
-          title: videoSection.title,
-          items: videoSection.items.map((item) => ({
+        sections: course.videoes.map((section: any) => ({
+          title: section.title,
+          items: section.items.map((item: any) => ({
             id: item.id,
             type: item.type,
             title: item.title,
@@ -96,12 +55,11 @@ export function useCourse(id: string | undefined) {
             questions: item.questions || 0,
           })),
         })),
-        whatYouWillLearn: course.whatYouWillLearn,
-        requirements: course.requirements,
-        reviews: course.reviews,
+        whatYouWillLearn: course.whatYouWillLearn || [],
+        requirements: course.requirements || [],
+        reviews: course.reviews || [],
       };
 
-      // console.log( "Formatted course:", formattedCourse);
       return formattedCourse;
     } catch (error) {
       console.error("Error fetching course:", error);
@@ -109,352 +67,134 @@ export function useCourse(id: string | undefined) {
     }
   };
 
+  /* ================= RENDER COURSE ================= */
   const renderCourse = () => {
-    if (id) {
-      // console.log("Available coursesData:", coursesData);
-      // console.log("Checking for ID:", id);
+    if (!coursesData || !coursesData.sections) {
+      setIsLoading(false);
+      return;
+    }
 
-      const courseData = coursesData; // No need to use coursesData[id]
+    setCourse(coursesData);
 
-      if (!courseData || courseData.id !== id) {
-        console.error(`Course not found for id: ${id}`);
-        setIsLoading(false);
-        return;
-      }
+    const savedBookmarks = loadBookmarks(id || "");
+    setBookmarkedIds(savedBookmarks.bookmarkedIds || []);
+    setBookmarkedData(savedBookmarks.bookmarkedData || []);
 
-      setCourse(courseData);
+    /* ================= 🔥 FIX START ================= */
+    let videoSet = false;
 
-      // Load bookmarks from localStorage
-      const { bookmarkedIds, bookmarkedData } = loadBookmarks(id);
-      setBookmarkedIds(bookmarkedIds || []);
-      setBookmarkedData(bookmarkedData || []);
+    // 1️⃣ Try preview video
+    const previewSection = coursesData.sections.find((section: any) =>
+      section.items.some((item: any) => item.type === 'video' && item.isPreview)
+    );
 
-      // Set the first preview video as default
-      const firstPreviewSection = courseData.sections?.find(section =>
-        section.items.some(item => item.type === 'video' && item.isPreview)
+    if (previewSection) {
+      const previewVideo = previewSection.items.find(
+        (item: any) => item.type === 'video' && item.isPreview
       );
 
-      if (firstPreviewSection) {
-        const firstPreviewVideo = firstPreviewSection.items.find(item =>
-          item.type === 'video' && item.isPreview
-        );
-
-        if (firstPreviewVideo) {
-          setCurrentVideo({
-            ...firstPreviewVideo,
-            section: firstPreviewSection.title
-          });
-        }
+      if (previewVideo) {
+        setCurrentVideo({
+          ...previewVideo,
+          section: previewSection.title,
+        });
+        videoSet = true;
       }
-
-      setIsLoading(false);
-    } else {
-      console.error("ID is undefined or invalid");
-      setIsLoading(false);
     }
-  };
 
-  const getUserProgress = async (userEmail: string, courseId: string) => {
-    try {
-      const response = await fetch(`${baseUrl}/user-progress/${userEmail}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
-
-      // console.log("User progress fetched successfully:", data);
-
-      // Check if the courseId exists in the courseDetails array
-      const matchedCourse = data.userProgress.courseDetails.find(
-        (course: { courseId: string }) => course.courseId === courseId
+    // 2️⃣ Fallback → FIRST VIDEO
+    if (!videoSet) {
+      const firstSection = coursesData.sections[0];
+      const firstVideo = firstSection?.items?.find(
+        (item: any) => item.type === 'video'
       );
 
-      if (matchedCourse) {
-        // console.log("Matched Course:", matchedCourse);
-        setIsEnrolled(true);
-      } else {
-        console.log("Course ID not found in user progress");
+      if (firstVideo) {
+        setCurrentVideo({
+          ...firstVideo,
+          section: firstSection.title,
+        });
       }
-
-    } catch (error) {
-      console.error("Error fetching user progress:", error);
     }
+    /* ================= 🔥 FIX END ================= */
+
+    setIsLoading(false);
   };
 
-
+  /* ================= EFFECTS ================= */
   useEffect(() => {
-    window.scrollTo(0, 0);
-
     const fetchData = async () => {
-      const fetchedCourse = await getCourseById();
-      if (fetchedCourse) {
-        // console.log("Fetched course:", fetchedCourse);
-        getUserProgress("sayanmyself50@gmail.com", fetchedCourse?.id);
-        setCoursesData(fetchedCourse); // Ensure state is updated
-      }
+      setIsLoading(true);
+      const data = await getCourseById();
+      if (data) setCoursesData(data);
     };
-
     fetchData();
-  }, [id]); // Depend on `id`, so it re-fetches when `id` changes
+  }, [id]);
 
-  // Run renderCourse separately when coursesData updates
   useEffect(() => {
     if (Object.keys(coursesData).length > 0) {
       renderCourse();
     }
   }, [coursesData]);
 
-  const addProgress = async (
-    userEmail: string,
-    courseId: string,
-    courseName: string,
-    totalVideos: number,
-    testId?: string
-  ) => {
-    try {
-      const response = await fetch(`${baseUrl}/add-progress`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userEmail,
-          courseId,
-          courseName,
-          totalVideos,
-          testId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // throw new Error(data.message || "Something went wrong");
-        // console.log(data);
-        toast({
-          title: "Error",
-          description: data.message || "Something went wrong"
-        });
-        return;
-      }
-
-      // console.log("Progress added successfully:", data);
-      setIsEnrolled(true);
-      toast({
-        title: "Successfully enrolled!",
-        description: `You are now enrolled in "${course?.title}". Start learning now!`,
-      });
-      return data;
-    } catch (error) {
-      console.error("Error adding progress:", error);
-    }
-  };
-
-
-
-
-const handleEnroll = async () => {
-  try {
-    const res = await loadRazorpayScript();
-
-    if (!res) {
-      toast({
-        title: "Razorpay SDK failed",
-        description: "Please check your internet connection",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    /* ================= CREATE ORDER ================= */
-    const orderResponse = await fetch(`${baseUrl}/create-order`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount: course.price, // ₹ amount
-        courseId: course.id,
-      }),
-    });
-
-    const orderData = await orderResponse.json();
-
-    if (!orderResponse.ok) {
-      toast({
-        title: "Order creation failed",
-        description: orderData.message || "Something went wrong",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    /* ================= RAZORPAY OPTIONS ================= */
-    const options = {
-      key: "rzp_live_RRFHHC0NDEGi6g", // 🔴 Razorpay Key ID
-      amount: orderData.amount,
-      currency: "INR",
-      name: "Yogatara",
-      description: course.title,
-      order_id: orderData.orderId,
-
-      handler: async function (response: any) {
-        // ✅ PAYMENT SUCCESS
-
-        await addProgress(
-          "sayanmyself50@gmail.com",
-          course.id,
-          course.title,
-          course.sections?.length || 0
-        );
-
-        toast({
-          title: "Payment Successful 🎉",
-          description: "You are now enrolled in this course",
-        });
-      },
-
-      prefill: {
-        email: "sayanmyself50@gmail.com",
-      },
-
-      theme: {
-        color: "#BE7169",
-      },
-    };
-
-    const razorpay = new (window as any).Razorpay(options);
-    razorpay.open();
-
-  } catch (error) {
-    console.error("Razorpay Error:", error);
-    toast({
-      title: "Payment failed",
-      description: "Something went wrong",
-      variant: "destructive",
-    });
-  }
-};
-
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: course?.title,
-        text: `Check out this amazing course: ${course?.title}`,
-        url: window.location.href,
-      })
-        .catch(error => console.log('Error sharing:', error));
-    } else {
-      // Fallback for browsers that don't support the Web Share API
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => {
-          toast({
-            title: "Link copied!",
-            description: "Course link copied to clipboard",
-          });
-        })
-        .catch(err => console.log('Error copying link:', err));
-    }
-  };
-
+  /* ================= VIDEO PLAY ================= */
   const playVideo = (item: any, sectionTitle: string) => {
     if (!isEnrolled && !item.isPreview) {
       toast({
         title: "Content locked",
-        description: "Please enroll in the course to access all content",
-        variant: "destructive"
+        description: "Please enroll to access this video",
+        variant: "destructive",
       });
       return;
     }
 
     setCurrentVideo({
       ...item,
-      section: sectionTitle
-    });
-
-    // In a real app, you would update the user's progress here
-    if (isEnrolled) {
-      // Mark video as watched
-    }
-  };
-
-  const handleReviewHelpful = (reviewId: number, helpful: boolean) => {
-    // In a real app, you would update the review's helpful count in your backend
-    toast({
-      title: helpful ? "Marked as helpful" : "Marked as unhelpful",
-      description: "Thank you for your feedback!",
+      section: sectionTitle,
     });
   };
 
-  const toggleBookmark = (itemId: string, itemTitle: string) => {
+  /* ================= BOOKMARK ================= */
+  const toggleBookmark = (itemId: string, title: string) => {
     if (!id) return;
 
-    let newBookmarkedIds: string[];
-    let newBookmarkedData: Array<{ id: string, title: string }>;
+    let ids = [...bookmarkedIds];
+    let data = [...bookmarkedData];
 
-    if (bookmarkedIds.includes(itemId)) {
-      // Remove bookmark
-      newBookmarkedIds = bookmarkedIds.filter(id => id !== itemId);
-      newBookmarkedData = bookmarkedData.filter(item => item.id !== itemId);
-
-      toast({
-        title: "Bookmark removed",
-        description: "Item removed from your bookmarks",
-      });
+    if (ids.includes(itemId)) {
+      ids = ids.filter(i => i !== itemId);
+      data = data.filter(i => i.id !== itemId);
     } else {
-      // Add bookmark
-      newBookmarkedIds = [...bookmarkedIds, itemId];
-      newBookmarkedData = [...bookmarkedData, { id: itemId, title: itemTitle }];
-
-      toast({
-        title: "Bookmark added",
-        description: "Item added to your bookmarks",
-      });
+      ids.push(itemId);
+      data.push({ id: itemId, title });
     }
 
-    // Update state
-    setBookmarkedIds(newBookmarkedIds);
-    setBookmarkedData(newBookmarkedData);
-
-    // Save to localStorage
-    saveBookmarks(id, newBookmarkedIds, newBookmarkedData);
+    setBookmarkedIds(ids);
+    setBookmarkedData(data);
+    saveBookmarks(id, ids, data);
   };
 
   const findAndPlayBookmarkedVideo = (itemId: string) => {
     if (!course) return;
 
-    // Extract section and item index from the itemId format: courseId_sectionX_itemY
-    const parts = itemId.split('_');
-    if (parts.length !== 3) return;
-
-    const sectionIndexStr = parts[1].replace('section', '');
-    const itemIndexStr = parts[2].replace('item', '');
-
-    const sectionIndex = parseInt(sectionIndexStr);
-    const itemIndex = parseInt(itemIndexStr);
-
-    if (isNaN(sectionIndex) || isNaN(itemIndex)) return;
-
-    const section = course.sections[sectionIndex];
-    if (!section) return;
-
-    const item = section.items[itemIndex];
-    if (!item) return;
-
-    // Play the video
-    playVideo(item, section.title);
-
-    // Hide bookmarks panel
-    setShowBookmarks(false);
+    for (const section of course.sections) {
+      const item = section.items.find((i: any) => i.id === itemId);
+      if (item) {
+        playVideo(item, section.title);
+        setShowBookmarks(false);
+        break;
+      }
+    }
   };
 
   const toggleBookmarksPanel = () => {
-    setShowBookmarks(!showBookmarks);
+    setShowBookmarks(prev => !prev);
+  };
+
+  /* ================= SHARE ================= */
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({ title: "Link copied" });
   };
 
   return {
@@ -465,13 +205,10 @@ const handleEnroll = async () => {
     showBookmarks,
     bookmarkedIds,
     bookmarkedData,
-    handleEnroll,
-    handleShare,
     playVideo,
-    handleReviewHelpful,
     toggleBookmark,
     findAndPlayBookmarkedVideo,
     toggleBookmarksPanel,
-    handleDownloadResources
+    handleShare,
   };
 }

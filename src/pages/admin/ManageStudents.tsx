@@ -55,7 +55,7 @@ const ManageStudents = () => {
       });
 
       const data = await res.json();
-      console.log("FETCH STUDENTS RESPONSE 👉", data);
+      // console.log("FETCH STUDENTS RESPONSE 👉", data);
 
       setStudents(data.students);
     } catch (err) {
@@ -77,7 +77,7 @@ const ManageStudents = () => {
 
 const handleDelete = async (id: string) => {
   const email = students.find((s) => s._id === id)?.email;
-console.log('pp',email);
+// console.log('pp',email);
 
   try {
 
@@ -88,7 +88,7 @@ console.log('pp',email);
       },
       body: JSON.stringify({ email }),
     });
-console.log('sss',res);
+// console.log('sss',res);
 
     setStudents((prev) => prev.filter((s) => s.email !== email));
 

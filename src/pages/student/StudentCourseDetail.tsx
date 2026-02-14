@@ -30,15 +30,20 @@ interface Lesson {
   videoUrl: string;
   description?: string;
   completed?: boolean;
+  isPreview?: boolean;
+  questions?: number;
+  videoId?: string;
 }
 
 interface Module {
   id: string;
   title: string;
+  name?: string;
   items: Lesson[];
 }
 
 interface Course {
+  _id?: string;
   courseName: string;
   courseImage: string;
   courseDescription: string;
@@ -46,7 +51,12 @@ interface Course {
   courseDuration: string;
   courseLevel: string;
   courseLanguage: string;
-  modules: Module[];
+  videos?: Module[];
+  videoes?: Module[];
+  modules?: Module[];
+  whatYouWillLearn?: string[];
+  requirements?: string[];
+  reviews?: any[];
 }
 
 interface CurrentLesson extends Lesson {
@@ -102,30 +112,46 @@ const StudentCourseDetail = () => {
 
         console.log("API DATA 👉", data);
 
-        // ✅ YAHI GALTI THI
+        // ✅ Check if data exists
         if (!data || !data._id) {
-          // setCourse(null);
           setLoading(false);
           return;
         }
 
+        // Support both 'videos' and 'videoes' field names from API
+        const videoSections = data.videos || data.videoes || [];
+
         const formattedCourse: Course = {
-          ...data,
-          modules: data.videoes || [],
+          _id: data._id,
+          courseName: data.courseName,
+          courseImage: data.courseImage,
+          courseDescription: data.courseDescription,
+          courseShortDescription: data.courseShortDescription,
+          courseDuration: data.courseDuration,
+          courseLevel: data.courseLevel,
+          courseLanguage: data.courseLanguage,
+          whatYouWillLearn: data.whatYouWillLearn,
+          requirements: data.requirements,
+          reviews: data.reviews,
+          videos: videoSections,
+          modules: videoSections, // Also set modules for backward compatibility
         };
-        console.log("API DATA 👉", formattedCourse);
-
+        
+        console.log("FORMATTED COURSE 👉", formattedCourse);
         setCourse(formattedCourse);
-
-        if (formattedCourse.modules.length > 0) {
-          const firstModule = formattedCourse.modules[0];
+        
+        // Get first lesson from first video section
+        if (videoSections && videoSections.length > 0) {
+          const firstModule = videoSections[0];
           const firstLesson = firstModule.items?.[0];
-
+          
           if (firstLesson) {
-            setCurrentLesson({
+            const lessonData = {
               ...firstLesson,
-              moduleTitle: firstModule.title || "",
-            });
+              moduleTitle: firstModule.title || firstModule.name || "",
+            };
+            console.log("FIRST LESSON 👉", lessonData);
+            setCurrentLesson(lessonData);
           }
         }
 
@@ -141,6 +167,7 @@ const StudentCourseDetail = () => {
 
   // ================= HANDLERS =================
   const startLesson = (moduleTitle: string, lesson: Lesson) => {
+    
     setCurrentLesson({ ...lesson, moduleTitle });
 
     toast({
@@ -161,7 +188,7 @@ const StudentCourseDetail = () => {
 
   // ================= UI STATES =================
   if (loading) {
-        console.log('eeee',course);
+        // console.log('eeee',course);
 
     return (
       <StudentLayout>
@@ -186,7 +213,7 @@ const StudentCourseDetail = () => {
       </StudentLayout>
     );
   }
-    console.log('eeee2',course);
+console.log('ddddd',currentLesson);
 
   // ================= MAIN RENDER =================
   return (
@@ -194,11 +221,15 @@ const StudentCourseDetail = () => {
       <div className="space-y-8">
         <CourseDetailHeader course={course} />
 
-        {currentLesson && (
-          <Card id="video-player">
-            <StudentVideoPlayer currentLesson={currentLesson} />
-          </Card>
-        )}
+      {currentLesson && (
+  <div
+    id="video-player"
+    className="w-full bg-[#061a2d]" // same dark background
+  >
+    <StudentVideoPlayer currentLesson={currentLesson} />
+  </div>
+)}
+
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">

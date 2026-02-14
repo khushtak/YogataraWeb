@@ -13,7 +13,7 @@ const EssayQuestion: React.FC<EssayQuestionProps> = ({
   value = ''
 }) => {
   // Add debug log
-  console.log("Rendering EssayQuestion component with value:", value);
+  // console.log("Rendering EssayQuestion component with value:", value);
   
   return (
     <div className="space-y-4 max-w-full">
@@ -23,7 +23,7 @@ const EssayQuestion: React.FC<EssayQuestionProps> = ({
         className="w-full h-32"
         value={value}
         onChange={(e) => {
-          console.log("EssayQuestion value changed:", e.target.value);
+          // console.log("EssayQuestion value changed:", e.target.value);
           onChange?.(e.target.value);
         }}
       />

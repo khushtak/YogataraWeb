@@ -64,11 +64,11 @@ const AdminHeader = () => {
           )}
         </button>
 
-        {/* 🔔 NOTIFICATION */}
+        {/* 🔔 NOTIFICATION
         <button className="p-2 rounded-full hover:bg-muted relative">
           <Bell className="h-5 w-5 text-muted-foreground" />
           <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full"></span>
-        </button>
+        </button> */}
 
         {/* 👤 PROFILE DROPDOWN */}
         <DropdownMenu>

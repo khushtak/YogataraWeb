@@ -28,21 +28,22 @@ const ProfileHeader = ({ isEditing, setIsEditing, onSaveProfile }: ProfileHeader
           Edit Profile
         </ButtonCustom>
       ) : (
-        <div className="flex gap-2">
-          <ButtonCustom 
-            variant="outline" 
-            onClick={() => setIsEditing(false)}
-          >
-            Cancel
-          </ButtonCustom>
-          <ButtonCustom 
-            onClick={onSaveProfile}
-            className="flex items-center"
-          >
-            <Check className="h-4 w-4 mr-2" />
-            Save Changes
-          </ButtonCustom>
-        </div>
+        // <div className="flex gap-2">
+        //   <ButtonCustom 
+        //     variant="outline" 
+        //     onClick={() => setIsEditing(false)}
+        //   >
+        //     Cancel
+        //   </ButtonCustom>
+        //   <ButtonCustom 
+        //     onClick={onSaveProfile}
+        //     className="flex items-center"
+        //   >
+        //     <Check className="h-4 w-4 mr-2" />
+        //     Save Changes
+        //   </ButtonCustom>
+        // </div>
+        null
       )}
     </div>
   );

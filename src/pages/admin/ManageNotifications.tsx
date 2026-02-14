@@ -37,60 +37,6 @@ const ManageNotifications = () => {
   const [notificationStatus, setNotificationStatus] = useState('sent');
   const [notificationType, setNotificationType] = useState('course');
 
-  // Sample notification data
-  // const sampleNotifications: Notification[] = [
-  //   {
-  //     id: '1',
-  //     title: 'New Course Available: Palm Reading',
-  //     message: 'We\'ve just launched a new course on Palm Reading. Check it out now!',
-  //     recipients: 'All Students',
-  //     recipientCount: 2845,
-  //     date: new Date(2023, 11, 15),
-  //     status: 'sent',
-  //     type: 'announcement'
-  //   },
-  //   {
-  //     id: '2',
-  //     title: 'Complete your Vedic Astrology course',
-  //     message: 'You\'re halfway through your Vedic Astrology course. Keep going to unlock all the benefits!',
-  //     recipients: 'Course: Vedic Astrology',
-  //     recipientCount: 1486,
-  //     date: new Date(2023, 11, 10),
-  //     status: 'sent',
-  //     type: 'reminder'
-  //   },
-  //   {
-  //     id: '3',
-  //     title: 'Numerology Course Update',
-  //     message: 'We\'ve added new content to the Numerology course. Check out the new modules now available!',
-  //     recipients: 'Course: Numerology',
-  //     recipientCount: 926,
-  //     date: new Date(2023, 11, 20),
-  //     status: 'scheduled',
-  //     type: 'course'
-  //   },
-  //   {
-  //     id: '4',
-  //     title: 'Holiday Special Discount',
-  //     message: 'Use code HOLIDAY25 for 25% off on all courses until December 31st!',
-  //     recipients: 'All Students',
-  //     recipientCount: 2845,
-  //     date: new Date(2023, 12, 1),
-  //     status: 'draft',
-  //     type: 'announcement'
-  //   },
-  //   {
-  //     id: '5',
-  //     title: 'Tarot Reading Practice Session',
-  //     message: 'Join our live practice session this weekend to practice your tarot reading skills with our instructor.',
-  //     recipients: 'Course: Tarot Reading',
-  //     recipientCount: 1243,
-  //     date: new Date(2023, 11, 25),
-  //     status: 'scheduled',
-  //     type: 'course'
-  //   }
-  // ];
-
   useEffect(() => {
     getAllNotifications();
   }, [isCreateNotificationOpen])
@@ -133,41 +79,51 @@ const ManageNotifications = () => {
       notification.recipients.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleCreateNotification = async () => {
-    try {
-      const response = await fetch(`${baseUrl}/create-notification`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: notificationTitle,
-          message: notificationMessage,
-          type: notificationType,
-          recipients: notificationRecipients,
-          status: notificationStatus,
-        }),
-      });
+ const handleCreateNotification = async () => {
+  try {
 
-      if (!response.ok) {
-        throw new Error("Failed to create notification");
-      }
+    /* 2️⃣ Get all FCM tokens */
+    const tokenRes = await fetch(`${baseUrl}/get-all-fcm-tokens`);
+    console.log('dada0',tokenRes);
+    
+    const tokens: string[] = await tokenRes.json();
 
+    if (!tokens || tokens.length === 0) {
       toast({
-        title: "Notification created",
-        description: "Your notification has been created successfully.",
+        title: "No users",
+        description: "No FCM tokens found",
       });
-
-      setIsCreateNotificationOpen(false);
-    } catch (error) {
-      console.error("Error creating notification:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create notification.",
-        variant: "destructive",
-      });
+      return;
     }
-  };
+
+    /* 3️⃣ Send push notification */
+    await fetch(`${baseUrl}/send-push-notification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tokens,
+        title: notificationTitle,
+        body: notificationMessage,
+      }),
+    });
+
+    toast({
+      title: "Notification Sent 🔔",
+      description: "The notification was sent successfully.",
+    });
+
+    setIsCreateNotificationOpen(false);
+    getAllNotifications();
+
+  } catch (err) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "Failed to send notification",
+    });
+  }
+};
+
 
   const handleDeleteNotification = async (id: string) => {
     try {
@@ -201,6 +157,8 @@ const ManageNotifications = () => {
 
 
   const getNotificationTypeIcon = (type: string) => {
+    console.log('dsada',type);
+    
     switch (type) {
       case 'Announcement':
         return <BellRing className="h-4 w-4 text-blue-500" />;
@@ -253,19 +211,7 @@ const ManageNotifications = () => {
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="notification-type">Notification Type</Label>
-                    <Select onValueChange={setNotificationType}>
-                      <SelectTrigger id="notification-type">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Announcement">Announcement</SelectItem>
-                        <SelectItem value="Reminder">Reminder</SelectItem>
-                        <SelectItem value="Course Update">Course Update</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+               
                   <div>
                     <Label htmlFor="notification-recipients">Recipients</Label>
                     <Select onValueChange={setNotificationRecipients}>
@@ -274,33 +220,11 @@ const ManageNotifications = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="All">All Students</SelectItem>
-                        <SelectItem value="Vedic">Vedic Astrology Students</SelectItem>
-                        <SelectItem value="Numerology">Numerology Students</SelectItem>
-                        <SelectItem value="Tarot">Tarot Reading Students</SelectItem>
-                        <SelectItem value="Inactive">Inactive Students</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="notification-status">Status</Label>
-                    <Select onValueChange={setNotificationStatus}>
-                      <SelectTrigger id="notification-status">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Draft">Save as Draft</SelectItem>
-                        <SelectItem value="Sent">Send Immediately</SelectItem>
-                        {/* <SelectItem value="schedule">Schedule</SelectItem> */}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {/* <div>
-                    <Label htmlFor="notification-date">Schedule Date (if applicable)</Label>
-                    <Input id="notification-date" type="datetime-local" />
-                  </div> */}
-                </div>
+              
               </div>
             </div>
             <DialogFooter>
@@ -398,9 +322,7 @@ const ManageNotifications = () => {
                             <Send className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="icon" title="Duplicate">
-                          <Copy className="h-4 w-4 text-muted-foreground" />
-                        </Button>
+                       
                         <Button variant="ghost" size="icon" title="Delete" onClick={() => handleDeleteNotification(notification.id)}>
                           <RiDeleteBin5Line className="h-6 w-6 text-muted-foreground text-red-800" />
                         </Button>

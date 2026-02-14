@@ -63,7 +63,7 @@ const AdminCoupons = () => {
   const fetchCoupons = async () => {
     const res = await fetch(`${baseUrl}/getcoupons`);
     const data = await res.json();
-    console.log('ppppp',data);
+    // console.log('ppppp',data);
     
     setCoupons(data.coupons || []);
   };

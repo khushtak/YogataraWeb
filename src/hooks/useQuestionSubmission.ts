@@ -82,7 +82,7 @@ export const useQuestionSubmission = ({
         };
     }
     
-    console.log("Question submitted:", questionData);
+    // console.log("Question submitted:", questionData);
     
     toast({
       title: "Success",

@@ -12,7 +12,7 @@ interface SectionItem {
   type: string;
   title: string;
   duration: string;
-  videoUrl?: string;
+  videoId?: string;
   isPreview: boolean;
   description: string;
   questions?: number;
@@ -56,7 +56,7 @@ const CurriculumTab: React.FC<CurriculumTabProps> = ({
     try {
       setIsUploading(true);
       setUploadingItemId(itemId);
-      console.log('Uploading video...');
+      // console.log('Uploading video...');
       const formData = new FormData();
       formData.append('video', file);
 
@@ -71,8 +71,8 @@ const CurriculumTab: React.FC<CurriculumTabProps> = ({
 
       const data = await response.json();
       // console.log('Upload successful:', data);
-      setVideoUrl(data.videoUrl);
-      handleItemChange(sectionId, itemId, 'videoUrl', data.videoUrl);
+      setVideoUrl(data.videoId);
+      handleItemChange(sectionId, itemId, 'videoId', data.videoId);
       return data;
     } catch (error) {
       console.error('Upload failed:', error);

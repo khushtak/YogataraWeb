@@ -62,7 +62,10 @@ export function useCourse(id: string | undefined) {
 
       // console.log("Fetched course:", course);
 
-      const pdfUrls = course?.videoes?.flatMap(video =>
+      // Support both 'videos' and 'videoes' field names
+      const videoSections = course?.videos || course?.videoes || [];
+
+      const pdfUrls = videoSections?.flatMap(video =>
         video.items?.filter(item => item.type === "pdf" && item.pdfUrl).map(item => item.pdfUrl)
       ) || [];
 
@@ -85,8 +88,9 @@ export function useCourse(id: string | undefined) {
         instructorBio: course.courseInStructure[0]?.bio || "",
         instructorImage: course.courseInStructure[0]?.image || "",
         thumbnail: course.courseImage,
-        sections: course.videoes.map((videoSection) => ({
-          title: videoSection.title,
+        sections: videoSections.map((videoSection) => ({
+          id: videoSection.id,
+          title: videoSection.name || videoSection.title,
           items: videoSection.items.map((item) => ({
             id: item.id,
             type: item.type,
@@ -94,7 +98,9 @@ export function useCourse(id: string | undefined) {
             duration: item.duration,
             isPreview: item.isPreview,
             videoUrl: item.videoUrl,
+            description: item.description || "",
             questions: item.questions || 0,
+            videoId: item.videoId,
           })),
         })),
         whatYouWillLearn: course.whatYouWillLearn,
@@ -110,99 +116,116 @@ export function useCourse(id: string | undefined) {
     }
   };
 
-  const renderCourse = () => {
-    if (id) {
-      // console.log("Available coursesData:", coursesData);
-      // console.log("Checking for ID:", id);
+const renderCourse = () => {
+  if (!id) {
+    setIsLoading(false);
+    return;
+  }
 
-      const courseData = coursesData; // No need to use coursesData[id]
+  const courseData = coursesData;
 
-      if (!courseData || courseData.id !== id) {
-        console.error(`Course not found for id: ${id}`);
-        setIsLoading(false);
-        return;
-      }
+  if (!courseData || courseData.id !== id) {
+    console.error(`Course not found for id: ${id}`);
+    setIsLoading(false);
+    return;
+  }
 
-      setCourse(courseData);
+  setCourse(courseData);
 
-      // Load bookmarks from localStorage
-      const { bookmarkedIds, bookmarkedData } = loadBookmarks(id);
-      setBookmarkedIds(bookmarkedIds || []);
-      setBookmarkedData(bookmarkedData || []);
+  // bookmarks
+  const { bookmarkedIds, bookmarkedData } = loadBookmarks(id);
+  setBookmarkedIds(bookmarkedIds || []);
+  setBookmarkedData(bookmarkedData || []);
 
-      // Set the first preview video as default
-      const firstPreviewSection = courseData.sections?.find(section =>
-        section.items.some(item => item.type === 'video' && item.isPreview)
-      );
+  let videoSet = false;
 
-      if (firstPreviewSection) {
-        const firstPreviewVideo = firstPreviewSection.items.find(item =>
-          item.type === 'video' && item.isPreview
-        );
+  /* ================= 1️⃣ PREVIEW VIDEO ================= */
+  const previewSection = courseData.sections?.find((section: any) =>
+    section.items?.some((item: any) => item.type === "video" && item.isPreview)
+  );
 
-        if (firstPreviewVideo) {
-          setCurrentVideo({
-            ...firstPreviewVideo,
-            section: firstPreviewSection.title
-          });
-        }
-      }
-
-      setIsLoading(false);
-    } else {
-      console.error("ID is undefined or invalid");
-      setIsLoading(false);
-    }
-  };
-
-const getUserProgress = async (userEmail?: string, courseId?: string) => {
-  try {
-    // 🔒 agar email ya courseId hi nahi hai to aage mat badho
-    if (!userEmail || !courseId) {
-      setIsEnrolled(false);
-      return;
-    }
-
-    const response = await fetch(`${baseUrl}/user-progress/${userEmail}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      // agar 404 ya error aaya to enrolled false
-      setIsEnrolled(false);
-      return;
-    }
-
-    const data = await response.json();
-
-    // safe access (kahin undefined na ho)
-    const courseDetails = data?.userProgress?.courseDetails;
-
-    if (!Array.isArray(courseDetails)) {
-      setIsEnrolled(false);
-      return;
-    }
-
-    // check karo ki ye course user ne enroll kiya hai ya nahi
-    const matchedCourse = courseDetails.find(
-      (course: { courseId: string }) => course.courseId === courseId
+  if (previewSection) {
+    const previewVideo = previewSection.items.find(
+      (item: any) => item.type === "video" && item.isPreview
     );
 
-    if (matchedCourse) {
-      setIsEnrolled(true);
-    } else {
-      setIsEnrolled(false);
+    if (previewVideo) {
+      setCurrentVideo({
+        ...previewVideo,
+        section: previewSection.title,
+      });
+      videoSet = true;
     }
-
-  } catch (error) {
-    console.error("Error fetching user progress:", error);
-    // kisi bhi error me safe default = not enrolled
-    setIsEnrolled(false);
   }
+
+  /* ================= 2️⃣ FALLBACK → FIRST VIDEO ================= */
+  if (!videoSet) {
+    const firstSection = courseData.sections?.[0];
+    const firstVideo = firstSection?.items?.find(
+      (item: any) => item.type === "video"
+    );
+
+    if (firstVideo) {
+      setCurrentVideo({
+        ...firstVideo,
+        section: firstSection.title,
+      });
+    }
+  }
+
+  setIsLoading(false);
 };
+
+
+
+// const getUserProgress = async (userEmail?: string, courseId?: string) => {
+//   try {
+//     // 🔒 agar email ya courseId hi nahi hai to aage mat badho
+//     if (!userEmail || !courseId) {
+//       setIsEnrolled(false);
+//       return;
+//     }
+
+//     const response = await fetch(`${baseUrl}/user-progress/${userEmail}`, {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//     });
+
+//     if (!response.ok) {
+//       // agar 404 ya error aaya to enrolled false
+//       setIsEnrolled(false);
+//       return;
+//     }
+
+//     const data = await response.json();
+
+//     // safe access (kahin undefined na ho)
+//     const courseDetails = data?.userProgress?.courseDetails;
+
+//     if (!Array.isArray(courseDetails)) {
+//       setIsEnrolled(false);
+//       return;
+//     }
+
+//     // check karo ki ye course user ne enroll kiya hai ya nahi
+//     const matchedCourse = courseDetails.find(
+//       (course: { courseId: string }) => course.courseId === courseId
+//     );
+
+//     if (matchedCourse) {
+//       setIsEnrolled(true);
+//     } else {
+//       setIsEnrolled(false);
+//     }
+
+//   } catch (error) {
+//     console.error("Error fetching user progress:", error);
+//     // kisi bhi error me safe default = not enrolled
+//     setIsEnrolled(false);
+//   }
+// };
 
 
 useEffect(() => {
@@ -215,12 +238,12 @@ useEffect(() => {
       const user = getUser(); // yaha call karo
 
       // 🔒 agar user logged in hai tabhi email bhejo
-      if (user && user.email) {
-        getUserProgress(user.email, fetchedCourse.id);
-      } else {
-        // user nahi hai to enrolled false rakho
-        setIsEnrolled(false);
-      }
+      // if (user && user.email) {
+      //   getUserProgress(user.email, fetchedCourse.id);
+      // } else {
+      //   // user nahi hai to enrolled false rakho
+      //   setIsEnrolled(false);
+      // }
     }
   };
 

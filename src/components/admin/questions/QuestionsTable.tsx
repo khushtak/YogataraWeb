@@ -58,7 +58,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions, onDelete }) 
   
   const handleEditQuestion = (id: number) => {
     // Would typically open edit dialog here
-    console.log(`Editing question ${id}`);
+    // console.log(`Editing question ${id}`);
   };
 
   const allSelected = questions.length > 0 && selectedQuestions.length === questions.length;

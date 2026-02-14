@@ -18,7 +18,7 @@ const ManageCourses: React.FC = () => {
         throw new Error("Failed to fetch courses");
       }
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
       const formattedCourses = data.map((course) => ({
         id: course.courseId || course._id,
         title: course.courseName,

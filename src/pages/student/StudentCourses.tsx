@@ -59,7 +59,7 @@ const fetchEnrolledAndProgress = async () => {
   try {
     const user = getUser();
     const token = getToken();
-console.log('sssss',user);
+// console.log('sssss',user);
 
     if (!user?.id || !user?.email) return;
 
@@ -84,7 +84,7 @@ console.log('sssss',user);
       const progressRes = await fetch(
         `${baseUrl}/user-progress/${user.email}`
       );
-      console.log('sssssssss',progressRes);
+      // console.log('sssssssss',progressRes);
       
       const progressData = await progressRes.json();
 

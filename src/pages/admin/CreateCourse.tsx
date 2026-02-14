@@ -346,15 +346,15 @@ const CreateCourse = () => {
         },
         body: JSON.stringify(courseData),
       });
-console.log('dd2',response);
+// console.log('dd2',response);
 
       const data = await response.json();
-console.log('dd',data);
+// console.log('dd',data);
       if (!response.ok) {
         throw new Error(data.message || "Failed to add course");
       }
 
-      console.log("Course added successfully", data);
+      // console.log("Course added successfully", data);
       // return data;
       navigate('/admin/courses');
     } catch (error) {
@@ -394,7 +394,7 @@ console.log('dd',data);
       const data = await response.json();
 
       if (response.ok && data.success) {
-        console.log("File uploaded successfully:", data.fileUrl);
+        // console.log("File uploaded successfully:", data.fileUrl);
         return data.fileUrl; // ✅ Return Cloudinary URL
       } else {
         console.error("Upload failed:", data.message);
