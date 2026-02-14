@@ -300,7 +300,7 @@ const addQuestions = async (courseId: string, questions: any) => {
       throw new Error(data.message || "Failed to add questions");
     }
 
-    console.log("✅ Questions added:", data);
+    // console.log("✅ Questions added:", data);
     return data;
 
   } catch (error: any) {

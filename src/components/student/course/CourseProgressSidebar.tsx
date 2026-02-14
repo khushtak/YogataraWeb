@@ -41,6 +41,7 @@ const CourseProgressSidebar = ({
 
   const modules = course?.modules ?? [];
   const progress = course?.progress ?? 0;
+// console.log('sdsa',progress);
 
   return (
     <Card className="sticky top-16 md:top-24 w-full">

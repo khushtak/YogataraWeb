@@ -56,7 +56,6 @@ const getCategories = async () => {
     setLoading(true);
     const res = await axios.get(`${baseUrl}/categories`);
 
-console.log('dsadada',res);
 
     // ✅ YAHI FIX HAI
     setCategories(res.data.categories || []);

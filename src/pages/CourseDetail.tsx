@@ -25,6 +25,7 @@ const CourseDetail = () => {
     toggleBookmarksPanel,
     handleDownloadResources
   } = useCourse(id);
+  // console.log('currentVideo',currentVideo);
   
   if (isLoading) {
     return <LoadingState />;

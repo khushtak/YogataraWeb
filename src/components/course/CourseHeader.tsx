@@ -34,11 +34,15 @@ const CourseHeader = ({ course, isEnrolled, handleEnroll, handleShare }: CourseH
             <p className="text-lg text-muted-foreground mb-6">{course.description}</p>
             
             <div className="flex flex-wrap items-center text-sm mb-6">
-              <div className="flex items-center mr-4 mb-2">
-                <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
-                <span className="font-medium">{course.rating.toFixed(1)}</span>
-                <span className="text-muted-foreground ml-1">({course.students} students)</span>
-              </div>
+             <div className="flex items-center mr-4 mb-2">
+  <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
+  <span className="font-medium">
+    {(course.rating ?? 0).toFixed(1)}
+  </span>
+  <span className="text-muted-foreground ml-1">
+    ({course.students ?? 0} students)
+  </span>
+</div>
               <div className="flex items-center mr-4 mb-2">
                 <Clock className="h-4 w-4 text-muted-foreground mr-1" />
                 <span>{course.duration}</span>

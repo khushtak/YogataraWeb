@@ -13,6 +13,8 @@ interface CourseDetailHeaderProps {
 }
 
 const CourseDetailHeader = ({ course }: CourseDetailHeaderProps) => {
+  console.log('ssss',course);
+
   return (
     <div>
       <Link to="/student/courses" className="text-sm text-muted-foreground hover:text-primary mb-4 inline-flex items-center">

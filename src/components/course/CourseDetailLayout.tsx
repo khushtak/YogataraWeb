@@ -45,6 +45,7 @@ const CourseDetailLayout: React.FC<CourseDetailLayoutProps> = ({
 }) => {
   // Don't show the video player on the initial course detail page
   const isViewingMode = !!currentVideo;
+// console.log('dsdddd11',course);
 
   return (
     <div className="flex min-h-screen flex-col">

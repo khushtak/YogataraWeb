@@ -47,6 +47,9 @@ import CreateStudentPage from "./components/admin/AdminCreateStudent";
 import StudentsPage from "./components/admin/AdminStudent";
 import CategoryList from "./components/admin/ViewCategory";
 import AddCategory from "./components/admin/AddCategory";
+import { getFCMToken, onMessageListener } from "./Firebase";
+import baseUrl from "./config/Config";
+import { toast } from "./hooks/use-toast";
 
 // 🔥 QUERY CLIENT
 const queryClient = new QueryClient({
@@ -113,6 +116,30 @@ const AdminAuthRoute = ({ children }: { children: JSX.Element }) => {
 
 // 🚀 APP
 const App = () => {
+useEffect(() => {
+  if (!("Notification" in window)) return;
+
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        toast({
+          title: "Notifications Enabled 🔔",
+          description: "You will receive important updates And new course alerts",
+          duration: 5000, // ⏱️ 5 seconds
+        });
+      } else if (permission === "denied") {
+        toast({
+          variant: "destructive",
+          title: "Notifications Disabled",
+          description: "Please enable notifications from browser settings",
+          duration: 5000, // ⏱️ 5 seconds
+        });
+      }
+    });
+  }
+}, []);
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -255,6 +282,7 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+               
               <Route
                 path="/admin/categories"
                 element={

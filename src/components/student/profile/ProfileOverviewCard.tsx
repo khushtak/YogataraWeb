@@ -1,99 +1,88 @@
 "use client";
 
 import React, { useRef } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Upload } from "lucide-react";
-
-/* ================= TYPES ================= */
+import { getUser } from "@/utils/auth";
+import { SERVER_BASE_URL } from "@/config/server";
 
 interface ProfileData {
-  full_name: string;
+  fullName: string;
   email: string;
-  avatar?: string; // base64 image
 }
 
 interface ProfileOverviewCardProps {
   userData: ProfileData;
   isEditing: boolean;
-  setUserData?: (data: ProfileData) => void;
+  previewImage: string;
+  onImageSelect: (file: File) => void;
 }
 
-/* ============ INITIALS FUNCTION ============ */
-// Mridul soni -> MS
-// Amit Kumar Sharma -> AKS
-
-const getInitials = (full_name: string) => {
-  if (!full_name) return "U";
-
-  return full_name
-    .trim()
+const getInitials = (name: string) => {
+  if (!name) return "U";
+  return name
     .split(" ")
     .filter(Boolean)
-    .map(word => word[0].toUpperCase())
+    .map(w => w[0].toUpperCase())
     .join("");
 };
-
-/* ============ COMPONENT ==================== */
 
 const ProfileOverviewCard = ({
   userData,
   isEditing,
-  setUserData,
+  previewImage,
+  onImageSelect,
 }: ProfileOverviewCardProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const user = getUser();
 
-  /* Avatar click */
   const handleAvatarClick = () => {
-    if (isEditing) {
-      fileInputRef.current?.click();
+    if (isEditing) fileInputRef.current?.click();
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      onImageSelect(e.target.files[0]);
     }
   };
 
-  /* Image upload */
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // 🔥 FINAL IMAGE PRIORITY
+const imageSrc = previewImage
+  ? previewImage.startsWith("blob:")
+    ? previewImage
+    : `${SERVER_BASE_URL}${previewImage}`
+  : user?.profileImage
+  ? `${SERVER_BASE_URL}${user.profileImage}`
+  : "";
 
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      const updatedUser = {
-        ...userData,
-        avatar: reader.result as string,
-      };
-
-      setUserData?.(updatedUser);
-      sessionStorage.setItem("user", JSON.stringify(updatedUser));
-    };
-
-    reader.readAsDataURL(file);
-  };
+// console.log('dad',imageSrc);
 
   return (
     <div className="p-6 flex flex-col items-center text-center">
-      {/* ========= AVATAR ========= */}
       <div
-        className="relative mb-4 cursor-pointer"
+        className={`relative mb-4 ${isEditing ? "cursor-pointer" : ""}`}
         onClick={handleAvatarClick}
       >
-        <Avatar className="h-24 w-24">
-          {/* Image (only when uploaded) */}
-          <AvatarImage src={userData.avatar || ""} />
-
-          {/* Initials fallback */}
-          <AvatarFallback className="text-2xl font-semibold">
-            {getInitials(userData.full_name)}
-          </AvatarFallback>
+        <Avatar className="h-24 w-24 border overflow-hidden">
+          {imageSrc ? (
+            <img
+              src={imageSrc}
+              alt="Profile"
+              className="w-full h-full object-cover rounded-full"
+            />
+          ) : (
+            <AvatarFallback className="text-2xl font-semibold">
+              {getInitials(userData.fullName)}
+            </AvatarFallback>
+          )}
         </Avatar>
 
-        {/* Upload icon */}
         {isEditing && (
           <div className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-1">
             <Upload className="h-4 w-4" />
           </div>
         )}
 
-        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -103,8 +92,7 @@ const ProfileOverviewCard = ({
         />
       </div>
 
-      {/* ========= USER INFO ========= */}
-      <h2 className="text-xl font-bold">{userData.full_name}</h2>
+      <h2 className="text-xl font-bold">{userData.fullName}</h2>
       <p className="text-muted-foreground">{userData.email}</p>
     </div>
   );

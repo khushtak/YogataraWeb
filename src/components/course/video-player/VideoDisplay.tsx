@@ -34,6 +34,8 @@ const [showEnrollMsg, setShowEnrollMsg] = useState(false);
 
   /* ================= HELPERS ================= */
   const extractVideoId = (url: string) => {
+    // console.log('ooooooo',url);
+    
     return url.split("/").pop();
   };
 
@@ -67,7 +69,7 @@ const [showEnrollMsg, setShowEnrollMsg] = useState(false);
       const watched = await getUserProgress(user.email, course.id);
       if (watched >= totalVideos) return;
 
-      await fetch(`${baseUrl}/update-progress`, {
+    const res=  await fetch(`${baseUrl}/update-progress`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,6 +78,8 @@ const [showEnrollMsg, setShowEnrollMsg] = useState(false);
           videosWatched: watched + 1,
         }),
       });
+// console.log('dsad',res);
+
     } catch (err) {
       console.error("Update progress error:", err);
     }
@@ -140,15 +144,13 @@ const [showEnrollMsg, setShowEnrollMsg] = useState(false);
                 </div>
               )}
               {isPlaying && (
-                <iframe
-                  src={`https://iframe.mediadelivery.net/embed/409626/${extractVideoId(
-                    currentVideo.videoUrl
-                  )}`}
-                  loading="lazy"
-                  className="absolute inset-0 w-full h-full"
-                  allow="autoplay; encrypted-media; picture-in-picture"
-                  allowFullScreen
-                />
+                  <iframe
+          src={currentVideo.videoUrl}
+          loading="lazy"
+          className="w-full h-full"
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
               )}
             </div>
           ) : (

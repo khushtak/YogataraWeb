@@ -1,8 +1,13 @@
-
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import ProfileOverviewCard from '../ProfileOverviewCard';
-import ProfileDetailsForm from '../ProfileDetailsForm';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import ProfileOverviewCard from "../ProfileOverviewCard";
+import ProfileDetailsForm from "../ProfileDetailsForm";
 
 interface UserData {
   fullName: string;
@@ -15,38 +20,53 @@ interface UserData {
 interface ProfileTabProps {
   userData: UserData;
   isEditing: boolean;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   handleSaveProfile: () => void;
   setIsEditing: (value: boolean) => void;
+
+  // 🔥 NEW PROPS (image ke liye)
+  previewImage: string;
+  onImageSelect: (file: File) => void;
 }
 
-const ProfileTab = ({ 
-  userData, 
-  isEditing, 
-  handleInputChange, 
+const ProfileTab = ({
+  userData,
+  isEditing,
+  handleInputChange,
   handleSaveProfile,
-  setIsEditing
+  setIsEditing,
+  previewImage,
+  onImageSelect,
 }: ProfileTabProps) => {
   return (
     <div className="grid gap-6 md:grid-cols-3">
-      {/* Profile Overview Card */}
+      {/* ================= PROFILE OVERVIEW ================= */}
       <Card className="md:col-span-1">
         <CardContent className="p-0">
-          <ProfileOverviewCard userData={userData} isEditing={isEditing} />
+          <ProfileOverviewCard
+            userData={userData}
+            isEditing={isEditing}
+            previewImage={previewImage}
+            onImageSelect={onImageSelect}
+          />
         </CardContent>
       </Card>
 
-      {/* Profile Details Card */}
+      {/* ================= PROFILE DETAILS ================= */}
       <Card className="md:col-span-2">
         <CardHeader>
           <CardTitle>Profile Information</CardTitle>
-          <CardDescription>Update your profile details and preferences</CardDescription>
+          <CardDescription>
+            Update your profile details and preferences
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <ProfileDetailsForm 
-            userData={userData} 
-            isEditing={isEditing} 
-            handleInputChange={handleInputChange} 
+          <ProfileDetailsForm
+            userData={userData}
+            isEditing={isEditing}
+            handleInputChange={handleInputChange}
             handleSaveProfile={handleSaveProfile}
             setIsEditing={setIsEditing}
           />

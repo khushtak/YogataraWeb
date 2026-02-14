@@ -54,7 +54,7 @@ const AdminSidebar = () => {
       path: "/admin/students",
     },
     {
-      title: "Subscribed Students",
+      title: "Enrolled Students",
       icon: Users,
       path: "/admin/subscribed-students",
     },

@@ -26,6 +26,8 @@ import {
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from '@/components/ui/use-toast';
 import baseUrl from '@/config/Config';
+import { Category } from '@/utils/data/types';
+import axios from 'axios';
 // import { coursesData } from '@/data/coursesData';
 
 interface CourseSectionItem {
@@ -81,7 +83,58 @@ const EditCourse = () => {
 
   // Target Audience State
   const [targetAudience, setTargetAudience] = useState<string[]>(['']);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(false);
+    // const [videoFile, setVideoFile] = useState<File | null>(null);
+      const [videoUrl, setVideoUrl] = useState<string>('');
+      const [isUploading, setIsUploading] = useState(false);
+      const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
+    
+      const handleUpload = async (file: File, sectionId: string, itemId: string) => {
+        try {
+          setIsUploading(true);
+          setUploadingItemId(itemId);
+          // console.log('Uploading video...');
+          const formData = new FormData();
+          formData.append('video', file);
+    
+          const response = await fetch(`${baseUrl}/upload-bunny-video`, {
+            method: 'POST',
+            body: formData,
+          });
+    
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+    
+          const data = await response.json();
+          // console.log('Upload successful:', data);
+          setVideoUrl(data.videoUrl);
+          // handleItemChange(sectionId, itemId, 'videoUrl', data.videoUrl);
+          return data;
+        } catch (error) {
+          console.error('Upload failed:', error);
+          throw error;
+        } finally {
+          setIsUploading(false);
+          setUploadingItemId(null);
+        }
+      };
+const getCategories = async () => {
+  try {
+    setLoading(true);
+    const res = await axios.get(`${baseUrl}/categories`);
 
+console.log('dsadada',res);
+
+    // ✅ YAHI FIX HAI
+    setCategories(res.data.categories || []);
+  } catch (error) {
+    console.error('Error fetching categories', error);
+  } finally {
+    setLoading(false);
+  }
+};
   const formatCourses = (courses: any[]) => {
     return courses.map((course, index) => ({
       id: course.courseId || (index + 1).toString(),
@@ -435,7 +488,7 @@ const EditCourse = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        console.log("File uploaded successfully:", data.fileUrl);
+        // console.log("File uploaded successfully:", data.fileUrl);
         return data.fileUrl; // ✅ Return Cloudinary URL
       } else {
         console.error("Upload failed:", data.message);
@@ -973,21 +1026,69 @@ const EditCourse = () => {
                                   </div>
 
                                   {item.type === 'video' && (
-                                    <div>
-                                      <Label htmlFor={`item-video-${item.id}`}>Video URL</Label>
-                                      <div className="flex">
-                                        <div className="relative flex-1">
-                                          <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                          <Input
-                                            id={`item-video-${item.id}`}
-                                            value={item.videoUrl || ''}
-                                            onChange={(e) => handleContentItemChange(section.id, item.id, 'videoUrl', e.target.value)}
-                                            placeholder="Paste video URL (YouTube, Vimeo, etc.)"
-                                            className="pl-10"
-                                          />
-                                        </div>
-                                      </div>
-                                    </div>
+                                     <div className="grid gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <Input
+                                value={item.duration}
+                                onChange={(e) => handleItemChange(section.id, item.id, 'duration', e.target.value)}
+                                placeholder="Duration (e.g., 10:30)"
+                              />
+                            </div> */}
+                            <div className="p-4">
+                              <input
+                                type="file"
+                                accept="video/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleUpload(file, section.id, item.id);
+                                }}
+                              />
+                              {/* <button onClick={handleUpload} className="mt-2 bg-blue-500 text-white px-4 py-2 rounded">
+                                Upload
+                              </button> */}
+
+                              {/* {item.videoUrl && (
+                                <div className="mt-4">
+                                  <h2 className="text-lg font-bold">Preview:</h2>
+                                  <iframe
+                                    src={`https://iframe.mediadelivery.net/embed/409626/${item.videoUrl.split('/').pop()}`}
+                                    loading="lazy"
+                                    style={{
+                                      border: 'none',
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      width: '100%',
+                                      height: '100%'
+                                    }}
+                                    allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
+                                    allowFullScreen={true}
+                                  ></iframe>
+                                  <div style={{
+                                    position: 'relative',
+                                    paddingBottom: '56.25%',
+                                    height: 0,
+                                    overflow: 'hidden',
+                                    maxWidth: '100%',
+                                    background: '#000'
+                                  }}>
+                                  </div>
+                                </div>
+                              )} */}
+                            </div>
+                            {/* <div className="flex items-center gap-2">
+                              <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                              <Input
+                                value={item.videoUrl}
+                                onChange={(e) => handleItemChange(section.id, item.id, 'videoUrl', e.target.value)}
+                                placeholder="Video URL"
+                              />
+                            </div> */}
+                          </div>
+                        
+                        </div>
                                   )}
 
                                   {item.type === 'video' && (

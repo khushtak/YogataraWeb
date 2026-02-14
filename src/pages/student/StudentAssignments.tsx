@@ -58,7 +58,7 @@ const StudentAssignments = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     const a=getUser()
-    console.log('iii',a);
+    // console.log('iii',a);
     
     getUserProgress(a.email);
   }, []);
@@ -90,7 +90,7 @@ const StudentAssignments = () => {
   };
 
   const getUserProgress = async (email: string) => {
-    console.log('8888',email);
+    // console.log('8888',email);
     
     try {
       const res = await fetch(`${baseUrl}/user-progress/${email}`);
@@ -98,7 +98,7 @@ const StudentAssignments = () => {
       if (!res.ok) throw new Error("Progress fetch failed");
 
       const courseDetails = data.userProgress.courseDetails || [];
-console.log('ppppppppp',res);
+// console.log('ppppppppp',res);
 
       const courses = await Promise.all(
         courseDetails.map((c: any) => getCourseById(c.courseId))
@@ -117,7 +117,7 @@ console.log('ppppppppp',res);
           title: fullCourse?.courseName || "Untitled Course",
           course: fullCourse?.courseCategory || "General",
         };
-        console.log('oooo',base);
+        // console.log('oooo',base);
         
 
         if (course.testsTaken?.length) {
@@ -144,7 +144,7 @@ console.log('ppppppppp',res);
           });
         }
       });
-console.log('ppp',upcoming);
+// console.log('ppp',upcoming);
 
       setUpcomingAssignments(upcoming);
       setCompletedAssignments(completed);

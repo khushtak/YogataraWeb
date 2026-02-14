@@ -18,7 +18,11 @@ const StudentProfile = () => {
     location: "",
   });
 
-  // 🔥 VIEW PROFILE API SE DATA LANA
+  // 🖼️ IMAGE STATES
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string>("");
+
+  /* ================= VIEW PROFILE ================= */
   useEffect(() => {
     window.scrollTo(0, 0);
 
@@ -26,7 +30,6 @@ const StudentProfile = () => {
       try {
         const token = getToken();
         const storedUser = getUser();
-
         if (!storedUser?.email) return;
 
         const res = await fetch(
@@ -39,10 +42,12 @@ const StudentProfile = () => {
         );
 
         const data = await res.json();
-        const {profile}=data
+        // console.log('dsadadadadada',data);
+        
         if (!res.ok) throw new Error(data.message);
 
-        // backend se aaya hua fresh data set karo
+        const { profile } = data;
+
         setUserData({
           fullName: profile.fullName || "",
           email: profile.email || "",
@@ -50,14 +55,15 @@ const StudentProfile = () => {
           location: profile.location || "",
         });
 
-        // session bhi update kar do taaki har jagah same data rahe
+        setPreviewImage(profile.profileImage || "");
+
         saveUser({
           ...storedUser,
           fullName: profile.fullName,
           phoneNumber: profile.phoneNumber,
           location: profile.location,
+          profileImage: profile.profileImage,
         });
-
       } catch (error: any) {
         toast({
           title: "Error",
@@ -70,47 +76,59 @@ const StudentProfile = () => {
     fetchProfile();
   }, []);
 
-  // ✏️ input change
+  /* ================= INPUT CHANGE ================= */
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
-    setUserData((prev) => ({
+    setUserData(prev => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  // 🚀 EDIT PROFILE (ID BASED)
+  /* ================= IMAGE SELECT ================= */
+  const handleImageSelect = (file: File) => {
+    setProfileImage(file);
+    setPreviewImage(URL.createObjectURL(file));
+  };
+
+  /* ================= SAVE PROFILE ================= */
   const handleSaveProfile = async () => {
     try {
       const token = getToken();
       const user = getUser();
+// console.log('dsad',user);
 
-      if (!user || !user.id) throw new Error("User not logged in");
+      const formData = new FormData();
+      formData.append("fullName", userData.fullName);
+      formData.append("phoneNumber", userData.phoneNumber);
+      formData.append("location", userData.location);
 
-      const response = await fetch(`${baseUrl}/edit-profile/${user.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          fullName: userData.fullName,
-          phoneNumber: userData.phoneNumber,
-          location: userData.location,
-        }),
-      });
+      if (profileImage) {
+        formData.append("profileImage", profileImage);
+      }
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Update failed");
+      const res = await fetch(
+        `${baseUrl}/edit-profile/${user.id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
-      // session update
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
       saveUser({
         ...getUser(),
         fullName: data.user.fullName,
         phoneNumber: data.user.phoneNumber,
         location: data.user.location,
+        profileImage: data.user.profileImage,
       });
 
       toast({
@@ -119,6 +137,7 @@ const StudentProfile = () => {
       });
 
       setIsEditing(false);
+      setProfileImage(null);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -143,6 +162,8 @@ const StudentProfile = () => {
           handleInputChange={handleInputChange}
           handleSaveProfile={handleSaveProfile}
           setIsEditing={setIsEditing}
+          previewImage={previewImage}
+          onImageSelect={handleImageSelect}
         />
       </div>
     </StudentLayout>

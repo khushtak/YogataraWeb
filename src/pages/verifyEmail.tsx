@@ -34,7 +34,7 @@ const VerifyEmail = () => {
 
           navigate("/login");
       } catch (error) {
-        console.log('sssss',error);
+        // console.log('sssss',error);
         
         toast({
           title: "Email verified 🎉",
