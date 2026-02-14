@@ -9,7 +9,7 @@ import { toast } from "@/hooks/use-toast"
 
 import { saveUser, saveToken, getUser } from "@/utils/auth"
 import baseUrl from "@/config/Config"
-import { getFCMToken, onMessageListener } from "@/Firebase"
+import { getFCMToken, onMessageListener } from "@/firebase"
 
 
 const initialFormData = {

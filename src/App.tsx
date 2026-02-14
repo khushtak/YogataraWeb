@@ -47,7 +47,7 @@ import CreateStudentPage from "./components/admin/AdminCreateStudent";
 import StudentsPage from "./components/admin/AdminStudent";
 import CategoryList from "./components/admin/ViewCategory";
 import AddCategory from "./components/admin/AddCategory";
-import { getFCMToken, onMessageListener } from "./Firebase";
+import { getFCMToken, onMessageListener } from "./firebase";
 import baseUrl from "./config/Config";
 import { toast } from "./hooks/use-toast";
 
