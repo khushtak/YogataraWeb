@@ -6,6 +6,7 @@ RUN npm ci
 
 COPY . .
 
+# Vite will automatically read .env file during build
 RUN npm run build
 
 RUN npm install -g serve
