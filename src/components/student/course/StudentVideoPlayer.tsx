@@ -178,6 +178,7 @@ console.log('dsadad',data);
   }, [currentLesson]);
 
   if (!currentLesson) return null;
+console.log('dsad',videoRef);
 
   return (
     <div className="border rounded-lg overflow-hidden">

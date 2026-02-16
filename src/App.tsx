@@ -50,6 +50,8 @@ import AddCategory from "./components/admin/AddCategory";
 import { getFCMToken, onMessageListener } from "./firebase";
 import baseUrl from "./config/Config";
 import { toast } from "./hooks/use-toast";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // 🔥 QUERY CLIENT
 const queryClient = new QueryClient({
@@ -161,6 +163,22 @@ useEffect(() => {
                 element={
                   <AuthRoute>
                     <Login />
+                  </AuthRoute>
+                }
+              />
+                 <Route
+                path="/forgot-password"
+                element={
+                  <AuthRoute>
+                    <ForgotPassword />
+                  </AuthRoute>
+                }
+              />
+                  <Route
+                path="/reset-password/:token"
+                element={
+                  <AuthRoute>
+                    <ResetPassword />
                   </AuthRoute>
                 }
               />

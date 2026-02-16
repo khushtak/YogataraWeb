@@ -188,6 +188,16 @@ body: JSON.stringify({
                     {showPassword ? <EyeOff /> : <Eye />}
                   </button>
                 </div>
+                 {/* 👇 FORGOT PASSWORD BUTTON */}
+  <div className="flex justify-end mt-2">
+    <Link
+      to="/forgot-password"
+      className="text-sm text-primary hover:underline"
+    >
+      Forgot Password?
+    </Link>
+  </div>
+
               </div>
 
               <ButtonCustom type="submit" className="w-full h-12">
